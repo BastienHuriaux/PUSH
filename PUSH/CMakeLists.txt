@@ -9,4 +9,12 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET PUSH PROPERTY CXX_STANDARD 20)
 endif()
 
-# TODO: Ajoutez des tests et installez des cibles si nécessaire.
+add_subdirectory(external/glfw)
+
+# Incluez les sous-projets.
+
+target_include_directories(${PROJECT_NAME} PUBLIC external/glfw/include)
+
+target_link_directories(${PROJECT_NAME} PRIVATE external/glfw/src)
+
+target_link_libraries(${PROJECT_NAME} glfw)
