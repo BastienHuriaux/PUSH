@@ -13,8 +13,8 @@ add_subdirectory(external/glfw)
 
 # Incluez les sous-projets.
 
-target_include_directories(${PROJECT_NAME} PUBLIC external/glfw/include)
+target_include_directories(PUSH PUBLIC external/glfw/include)
 
-target_link_directories(${PROJECT_NAME} PRIVATE external/glfw/src)
+target_link_directories(PUSH PRIVATE external/glfw/src)
 
-target_link_libraries(${PROJECT_NAME} glfw)
+target_link_libraries(PUSH glfw)
