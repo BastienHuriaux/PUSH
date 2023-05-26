@@ -5,6 +5,9 @@
 
 #include <iostream>
 #include <vector>
+#include <filesystem>
+#include <unistd.h>
+#include "GL/glew.h"
 #include <GLFW/glfw3.h>
 
 // TODO: Référencez ici les en-têtes supplémentaires nécessaires à votre programme.

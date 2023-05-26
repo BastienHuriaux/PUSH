@@ -2,8 +2,6 @@
 //
 
 #include "PUSH.h"
-#include <filesystem>
-#include <unistd.h>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -87,7 +85,6 @@ int main()
     //We save the result of the command in output
     vector<string> vOutput;
     my_popen(vCommand, vOutput, path);
-    cout << path;
     //We check if the output has the good values
     for (vector<string>::iterator vIterator = vOutput.begin(); vIterator != vOutput.end(); ++vIterator)
     {

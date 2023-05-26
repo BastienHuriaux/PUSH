@@ -10,11 +10,15 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 add_subdirectory(external/glfw)
+add_subdirectory(external/glew)
 
 # Incluez les sous-projets.
 
 target_include_directories(PUSH PUBLIC external/glfw/include)
+target_include_directories(PUSH PUBLIC external/glew/include)
 
 target_link_directories(PUSH PRIVATE external/glfw/src)
+target_link_directories(PUSH PRIVATE external/glew/src)
 
 target_link_libraries(PUSH glfw)
+target_link_libraries(PUSH libglew_static)
