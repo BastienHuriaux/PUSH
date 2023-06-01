@@ -17,42 +17,64 @@ GLFWwindow* window;
 
 struct Processus {
 
-	float x0 = 0.0;
-	float x1, x2, x3, x4, x5;
+    float x0 = 0.0;
+    float x1, x2, x3, x4, x5;
 
-	float y0 = 0.0;
-	float y1, y2, y3, y4, y5;
+    float y0 = 0.0;
+    float y1, y2, y3, y4, y5;
 
-	vector <float> dataX;
-	vector <float> dataY;
+    vector <float> pointX;
+    vector <float> pointY;
 
-	Processus() {
-		createPoint();
-	}
+    Processus() {
+        createPoint();
+    }
 
-	void createPoint() {
-		x1 = x0 - 0.5;
-		x2 = x0 + 0.5;
-		x3 = x0 - 0.3;
-		x4 = x0 + 0.7;
-		x5 = x0 + 0.3;
+    void createPoint() {
+        x1 = x0 - 0.5;
+        x2 = x0 + 0.5;
+        x3 = x0 - 0.3;
+        x4 = x0 + 0.7;
+        x5 = x0 + 0.3;
 
-		y1 = y0 - 0.5;
-		y2 = y0 + 0.5;
-		y3 = y0 + 0.3;
-		y4 = y0 - 0.3;
-		y5 = y0 - 0.7;
+        y1 = y0 - 0.5;
+        y2 = y0 + 0.5;
+        y3 = y0 + 0.3;
+        y4 = y0 - 0.3;
+        y5 = y0 - 0.7;
 
-		dataX = { x1, x2, x2, x1, x1, x2, x1, x1, x2, x1, x2, x2, x3, x2, x2, x3, x3, x2, x2, x2, x4, x3, x5, x0 };
-		dataY = { y2, y2, y3, y2, y3, y3, y1, y4, y4, y1, y1, y4, y2, y2, y1, y2, y1, y1, y3, y4, y0, y1, y1, y5 };
-	}
+        pointX = { x1, x2, x2, x1, x1, x2, x1, x1, x2, x1, x2, x2, x3, x2, x2, x3, x3, x2, x2, x2, x4, x3, x5, x0 };
+        pointY = { y2, y2, y3, y2, y3, y3, y1, y4, y4, y1, y1, y4, y2, y2, y1, y2, y1, y1, y3, y4, y0, y1, y1, y5 };
+    }
 
-	void mouvForm() {
-		x0 += 0.0001f; // D�placement horizontal
-		y0 += 0.0001f; // D�placement vertical
+    void mouvForm(const double xCursor, const double yCursor) {
+        x0 = xCursor; // D�placement horizontal
+        y0 = yCursor; // D�placement vertical
 
-		createPoint(); // Permet de changer tout les points
-	}
+        createPoint(); // Permet de changer tout les points
+    }
+
+    bool isPointInsideForm(const double xCursor, const double yCursor) {
+        // Coordonn�es des sommets du triangle
+        for (int i = 0; i < pointX.size() - 2; i = i + 3) {
+            float x1 = pointX[i];
+            float x2 = pointX[i + 1];
+            float x3 = pointX[i + 2];
+            float y1 = pointY[i];
+            float y2 = pointY[i + 1];
+            float y3 = pointY[i + 2];
+
+            // Calcul des barycentres
+            float denom = ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+            float b1 = ((y2 - y3) * (xCursor - x3) + (x3 - x2) * (yCursor - y3)) / denom;
+            float b2 = ((y3 - y1) * (xCursor - x3) + (x1 - x3) * (yCursor - y3)) / denom;
+            float b3 = 1.0f - b1 - b2;
+
+            // V�rification si le point est � l'int�rieur du triangle
+            if ((b1 >= 0.0f) && (b2 >= 0.0f) && (b3 >= 0.0f)) return true;
+        }
+        return false;
+    }
 
 };
 
@@ -67,16 +89,6 @@ struct Processus {
 void drawTriangle(vector<float> dataX, vector<float> dataY) {
 	glBegin(GL_TRIANGLES);
 
-	/*glColor3f(1.0f, 0.0f, 0.0f); // Rouge
-	glVertex2f(0.0f, 0.5f);      // Sommet sup�rieur
-
-	glColor3f(0.0f, 1.0f, 0.0f); // Vert
-	glVertex2f(-0.5f, -0.5f);    // Sommet inf�rieur gauche
-
-	glColor3f(0.0f, 0.0f, 1.0f); // Bleu
-	glVertex2f(0.5f, -0.5f);     // Sommet inf�rieur droit
-	*/
-
 	for (int i = 0; i < dataX.size(); i++)
 	{
 		glColor3f(1.0f, 0.0f, 0.0f); // Rouge
@@ -85,6 +97,37 @@ void drawTriangle(vector<float> dataX, vector<float> dataY) {
 	glEnd();
 }
 
+void PositionCursor(GLFWwindow* pWindow, double& xCursor, double& yCursor, const int width, const int height)
+{
+    double xpos;
+    double ypos;
+    glfwGetCursorPos(pWindow, &xpos, &ypos);
+
+    if (xpos < 0)
+    {
+        xpos = xpos / 11;
+    }
+    else if (xpos > 0)
+    {
+        xpos = xpos / (width - 11);
+    }
+
+    if (ypos < 0)
+    {
+        ypos = (ypos / 11);
+    }
+    if (ypos > 0)
+    {
+        ypos = (ypos / (height - 11));
+    }
+
+    xpos = (xpos - 0.5) * 2;
+    ypos = -(ypos - 0.5) * 2;
+
+
+    xCursor = xpos;
+    yCursor = ypos;
+}
 
 void cd(const string& pCommand, string& pPath) {
     string vStartPath = pPath;
@@ -173,20 +216,34 @@ int main()
     my_popen(vCommand, vOutput, path);
     char c[100];
 
+    //taille de la fenetre
+    int windowWidth = 1900;
+    int windowHeight = 1060;
+
+    //intialisation de la position du curseur, 
+    double xCursor = 0;
+    double yCursor = 0;
+
     // Initialisation de GLFW
     if (!glfwInit()) {
         return -1;
     }
 
     // Cr�ation de la fen�tre
-    window = glfwCreateWindow(900, 900, "Triangle OpenGL", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "Triangle OpenGL", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
     }
 
+    //Vraie valeur de la position du curseur
+    PositionCursor(window, xCursor, yCursor, windowWidth, windowHeight);
+
     // Configuration de GLFW
     glfwMakeContextCurrent(window);
+
+    // Colorisation
+    glClearColor(0.969f, 0.941f, 0.941f, 0.0f);
 
     // Cr�e les pi�ces
     Processus forme = Processus();
@@ -195,16 +252,26 @@ int main()
     // Boucle principale
     while ((glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0)) {
 
+        //met a jour la valeur de la position du curseur
+        PositionCursor(window, xCursor, yCursor, windowWidth, windowHeight);
+
         // Effacer le contenu de la fen�tre
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Mise � jour du triangle
         //mouvForm(forme.dataX, forme.dataY);
         //mouvTriangle(forme.x1, forme.y1);
-        forme.mouvForm();
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye
+        {
+            if (forme.isPointInsideForm(xCursor, yCursor))
+            {
+                forme.mouvForm(xCursor, yCursor);
+            }
+
+        }
 
         // Dessiner le triangle
-        drawTriangle(forme.dataX, forme.dataY);
+        drawTriangle(forme.pointX, forme.pointY);
 
         // �change des tampons d'affichage
         glfwSwapBuffers(window);
