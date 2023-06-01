@@ -9,6 +9,83 @@ using namespace glm;
 
 GLFWwindow* window;
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// 
+//      Structures
+
+
+struct Processus {
+
+	float x0 = 0.0;
+	float x1, x2, x3, x4, x5;
+
+	float y0 = 0.0;
+	float y1, y2, y3, y4, y5;
+
+	vector <float> dataX;
+	vector <float> dataY;
+
+	Processus() {
+		createPoint();
+	}
+
+	void createPoint() {
+		x1 = x0 - 0.5;
+		x2 = x0 + 0.5;
+		x3 = x0 - 0.3;
+		x4 = x0 + 0.7;
+		x5 = x0 + 0.3;
+
+		y1 = y0 - 0.5;
+		y2 = y0 + 0.5;
+		y3 = y0 + 0.3;
+		y4 = y0 - 0.3;
+		y5 = y0 - 0.7;
+
+		dataX = { x1, x2, x2, x1, x1, x2, x1, x1, x2, x1, x2, x2, x3, x2, x2, x3, x3, x2, x2, x2, x4, x3, x5, x0 };
+		dataY = { y2, y2, y3, y2, y3, y3, y1, y4, y4, y1, y1, y4, y2, y2, y1, y2, y1, y1, y3, y4, y0, y1, y1, y5 };
+	}
+
+	void mouvForm() {
+		x0 += 0.0001f; // D�placement horizontal
+		y0 += 0.0001f; // D�placement vertical
+
+		createPoint(); // Permet de changer tout les points
+	}
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// 
+//      Fonctions
+
+
+
+void drawTriangle(vector<float> dataX, vector<float> dataY) {
+	glBegin(GL_TRIANGLES);
+
+	/*glColor3f(1.0f, 0.0f, 0.0f); // Rouge
+	glVertex2f(0.0f, 0.5f);      // Sommet sup�rieur
+
+	glColor3f(0.0f, 1.0f, 0.0f); // Vert
+	glVertex2f(-0.5f, -0.5f);    // Sommet inf�rieur gauche
+
+	glColor3f(0.0f, 0.0f, 1.0f); // Bleu
+	glVertex2f(0.5f, -0.5f);     // Sommet inf�rieur droit
+	*/
+
+	for (int i = 0; i < dataX.size(); i++)
+	{
+		glColor3f(1.0f, 0.0f, 0.0f); // Rouge
+		glVertex2f(dataX[i], dataY[i]);
+	}
+	glEnd();
+}
+
+
 void cd(const string& pCommand, string& pPath) {
     string vStartPath = pPath;
     int vEnd = pCommand.size();
@@ -96,277 +173,47 @@ int main()
     my_popen(vCommand, vOutput, path);
     char c[100];
 
-	// Initialise GLFW
-	if (!glfwInit())
-	{
-		fprintf(stderr, "Failed to initialize GLFW\n");
-		getchar();
-		return -1;
-	}
+    // Initialisation de GLFW
+    if (!glfwInit()) {
+        return -1;
+    }
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Cr�ation de la fen�tre
+    window = glfwCreateWindow(900, 900, "Triangle OpenGL", NULL, NULL);
+    if (!window) {
+        glfwTerminate();
+        return -1;
+    }
 
-	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 1024, "PUSH", NULL, NULL);
-	if (window == NULL) {
-		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
-		getchar();
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-	glViewport(10, 10, 872, 872);
-	// Initialize GLEW
-	glewExperimental = true; // Needed for core profile
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "Failed to initialize GLEW\n");
-		getchar();
-		glfwTerminate();
-		return -1;
-	}
+    // Configuration de GLFW
+    glfwMakeContextCurrent(window);
 
-	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-	// Dark blue background
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-
-	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders();
-
-	/*
-	static const GLfloat g_vertex_buffer_data[] = {
-		// Pi ce 3
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.2f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-
-		0.0f, 0.2f, 0.0f,
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.2f, 0.0f,
-
-		0.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		0.0f, 0.8f, 0.0f,
-
-		0.0f, 0.8f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 0.8f, 0.0f,
-
-		0.2f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-
-		0.2f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		0.2f, 0.0f, 0.0f,
-
-		0.0f, 0.8f, 0.0f,
-		0.2f, 0.8f, 0.0f,
-		0.2f, 0.5f, 0.0f,
-
-		0.0f, 0.2f, 0.0f,
-		0.2f, 0.2f, 0.0f,
-		0.2f, 0.5f, 0.0f,
-	};*/
-
-	/*static const GLfloat g_vertex_buffer_data[] = {
-		// Pi ce 1
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, 0.3f, 0.0f,
-
-		-0.5f, 0.5f, 0.0f,
-		-0.5f, 0.3f, 0.0f,
-		0.5f, 0.3f, 0.0f,
-
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, -0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-
-		-0.3f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-
-		-0.3f, 0.5f, 0.0f,
-		-0.3f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-
-		0.5f, 0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		0.7f, 0.0f, 0.0f,
-
-		-0.3f, -0.5f, 0.0f,
-		0.3f, -0.5f, 0.0f,
-		0.0f, -0.7f, 0.0f,
-	};*/
-
-	/*
-	static const GLfloat g_vertex_buffer_data[] = {
-		// Pi ce 2
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-
-		-0.5f, 0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-
-		0.5f, 0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		0.7f, 0.3f, 0.0f,
-
-		0.7f, 0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		0.7f, -0.3f, 0.0f,
-	};*/
-
-	/*static const GLfloat g_vertex_buffer_data[] = {
-		// Pi ce 4
-		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.2f, 1.0f, 0.0f,
-
-		0.0f, 0.0f, 0.0f,
-		0.2f, 1.0f, 0.0f,
-		0.2f, 0.0f, 0.0f,
-
-		1.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		0.8f, 0.0f, 0.0f,
-
-		1.0f, 1.0f, 0.0f,
-		0.8f, 1.0f, 0.0f,
-		0.8f, 0.0f, 0.0f,
-
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		0.0f, 0.8f, 0.0f,
-
-		1.0f, 0.8f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		0.0f, 0.8f, 0.0f,
-
-		0.8f, 1.0f, 0.0f,
-		0.5f, 0.8f, 0.0f,
-		0.8f, 0.8f, 0.0f,
-
-		0.2f, 1.0f, 0.0f,
-		0.5f, 0.8f, 0.0f,
-		0.2f, 0.8f, 0.0f,
-	};*/
-
-	static const GLfloat g_vertex_buffer_data[] = {
-		// Pi ce 5
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, 0.3f, 0.0f,
-
-		-0.5f, 0.5f, 0.0f,
-		-0.5f, 0.3f, 0.0f,
-		0.5f, 0.3f, 0.0f,
-
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, -0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-
-		0.5f, 0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		-0.3f, 0.3f, 0.0f,
-
-		-0.3f, -0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		-0.3f, 0.3f, 0.0f,
-
-		-0.5f, -0.3f, 0.0f,
-		-0.3f, 0.0f, 0.0f,
-		-0.3f, -0.3f, 0.0f,
-
-		-0.5f, 0.3f, 0.0f,
-		-0.3f, 0.0f, 0.0f,
-		-0.3f, 0.3f, 0.0f,
-
-		0.5f, 0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		0.7f, 0.3f, 0.0f,
-
-		0.7f, 0.3f, 0.0f,
-		0.5f, -0.3f, 0.0f,
-		0.7f, -0.3f, 0.0f,
-	};
+    // Cr�e les pi�ces
+    Processus forme = Processus();
 
 
-	GLuint vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    // Boucle principale
+    while ((glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0)) {
 
-	do {
+        // Effacer le contenu de la fen�tre
+        glClear(GL_COLOR_BUFFER_BIT);
 
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT);
+        // Mise � jour du triangle
+        //mouvForm(forme.dataX, forme.dataY);
+        //mouvTriangle(forme.x1, forme.y1);
+        forme.mouvForm();
 
-		// Use our shader
-		glUseProgram(programID);
+        // Dessiner le triangle
+        drawTriangle(forme.dataX, forme.dataY);
 
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
+        // �change des tampons d'affichage
+        glfwSwapBuffers(window);
 
-		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, 30); // 24 indices starting at 0 -> 1 triangle
-		//glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 1 -> 2 triangle
-		//glDrawArrays(GL_TRIANGLES, 2, 3); // 3 indices starting at 1 -> 4 triangle
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // V�rification des �v�nements de la fen�tre
+        glfwPollEvents();
+    }
 
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-
-
-
-		glDisableVertexAttribArray(0);
-
-		// Swap buffers
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-
-	} // Check if the ESC key was pressed or the window was closed
-	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-		glfwWindowShouldClose(window) == 0);
-
-	// Cleanup VBO
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteVertexArrays(1, &VertexArrayID);
-	glDeleteProgram(programID);
-
-	// Close OpenGL window and terminate GLFW
-	glfwTerminate();
-
-	return 0;
-
-
-	return 0;
+    // Terminaison de GLFW
+    glfwTerminate();
+    return 0;
 }
