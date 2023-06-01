@@ -1,5 +1,4 @@
 *.pc
-/build/*.rc
 /build/*/*.sdf
 /build/*/*.suo
 /build/*/*.db
