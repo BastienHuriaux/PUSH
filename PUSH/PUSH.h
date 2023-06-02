@@ -8,8 +8,18 @@
 #include <filesystem>
 #include <unistd.h>
 #include <GL/glew.h>
+//#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "shader.hpp"
+#include <GL/freeglut.h>
+#include "piece.cpp"
 
 // TODO: Référencez ici les en-têtes supplémentaires nécessaires à votre programme.

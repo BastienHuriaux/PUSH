@@ -9,92 +9,37 @@ using namespace glm;
 
 GLFWwindow* window;
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// 
-//      Structures
-
-
-struct Processus {
-
-    float x0 = 0.0;
-    float x1, x2, x3, x4, x5;
-
-    float y0 = 0.0;
-    float y1, y2, y3, y4, y5;
-
-    vector <float> pointX;
-    vector <float> pointY;
-
-    Processus() {
-        createPoint();
-    }
-
-    void createPoint() {
-        x1 = x0 - 0.5;
-        x2 = x0 + 0.5;
-        x3 = x0 - 0.3;
-        x4 = x0 + 0.7;
-        x5 = x0 + 0.3;
-
-        y1 = y0 - 0.5;
-        y2 = y0 + 0.5;
-        y3 = y0 + 0.3;
-        y4 = y0 - 0.3;
-        y5 = y0 - 0.7;
-
-        pointX = { x1, x2, x2, x1, x1, x2, x1, x1, x2, x1, x2, x2, x3, x2, x2, x3, x3, x2, x2, x2, x4, x3, x5, x0 };
-        pointY = { y2, y2, y3, y2, y3, y3, y1, y4, y4, y1, y1, y4, y2, y2, y1, y2, y1, y1, y3, y4, y0, y1, y1, y5 };
-    }
-
-    void mouvForm(const double xCursor, const double yCursor) {
-        x0 = xCursor; // D�placement horizontal
-        y0 = yCursor; // D�placement vertical
-
-        createPoint(); // Permet de changer tout les points
-    }
-
-    bool isPointInsideForm(const double xCursor, const double yCursor) {
-        // Coordonn�es des sommets du triangle
-        for (int i = 0; i < pointX.size() - 2; i = i + 3) {
-            float x1 = pointX[i];
-            float x2 = pointX[i + 1];
-            float x3 = pointX[i + 2];
-            float y1 = pointY[i];
-            float y2 = pointY[i + 1];
-            float y3 = pointY[i + 2];
-
-            // Calcul des barycentres
-            float denom = ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
-            float b1 = ((y2 - y3) * (xCursor - x3) + (x3 - x2) * (yCursor - y3)) / denom;
-            float b2 = ((y3 - y1) * (xCursor - x3) + (x1 - x3) * (yCursor - y3)) / denom;
-            float b3 = 1.0f - b1 - b2;
-
-            // V�rification si le point est � l'int�rieur du triangle
-            if ((b1 >= 0.0f) && (b2 >= 0.0f) && (b3 >= 0.0f)) return true;
-        }
-        return false;
-    }
-
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //
 // 
 //      Fonctions
 
+void mouvForm(Piece& pPiece, const double xCursor, const double yCursor) {
+    pPiece.x0 = xCursor; // D�placement horizontal
+    pPiece.y0 = yCursor; // D�placement vertical
 
+    pPiece.createPoint(); // Permet de changer tout les points
+}
 
-void drawTriangle(vector<float> dataX, vector<float> dataY) {
-	glBegin(GL_TRIANGLES);
+void drawTriangle(vector<vector<float>> pPointXY, vector<vector<float>> pContourXY) {
+    // Permet de dessiner des triangles
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < pPointXY[0].size(); i++)
+    {
+        glColor3f(0.569f, 0.545f, 0.545f); // Couleur de la piece
+        glVertex2f(pPointXY[0][i], pPointXY[1][i]);
+    }
+    glEnd();
 
-	for (int i = 0; i < dataX.size(); i++)
-	{
-		glColor3f(1.0f, 0.0f, 0.0f); // Rouge
-		glVertex2f(dataX[i], dataY[i]);
-	}
-	glEnd();
+    // Permet de dessiner les contours
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i < pContourXY[0].size(); i++)
+    {
+        glColor3f(1.0f, 0.0f, 0.0f); // Rouge
+        glVertex2f(pContourXY[0][i], pContourXY[1][i]);
+    }
+    glEnd();
 }
 
 void PositionCursor(GLFWwindow* pWindow, double& xCursor, double& yCursor, const int width, const int height)
@@ -121,12 +66,101 @@ void PositionCursor(GLFWwindow* pWindow, double& xCursor, double& yCursor, const
         ypos = (ypos / (height - 11));
     }
 
-    xpos = (xpos - 0.5) * 2;
-    ypos = -(ypos - 0.5) * 2;
+    xCursor = (xpos - 0.5) * 2;
+    yCursor = -(ypos - 0.5) * 2;
+}
 
 
-    xCursor = xpos;
-    yCursor = ypos;
+void createPiece(GLFWwindow* pWindow, vector <Piece>& pPieceArray)//, bool& pProcessMove) 
+{
+    Piece newProcessus = Piece(Type::Processus);
+    Piece newIn = Piece(Type::In);
+    Piece newOut = Piece(Type::Out);
+    Piece newError = Piece(Type::Error);
+    Piece newTube = Piece(Type::Tube);
+
+    /*
+    static int oldState = GLFW_RELEASE;//0
+    int newState = glfwGetKey(window, GLFW_KEY_ENTER);// 1 if pressed
+    if (newState == GLFW_RELEASE && oldState == GLFW_PRESS)
+    {
+        pPieceArray.insert(pPieceArray.end(), newProcessus);
+    }
+    oldState = newState;
+    */
+
+
+    static int oldStateProcessus = GLFW_RELEASE; //0
+    static int oldStateIn = GLFW_RELEASE; //0
+    static int oldStateOut = GLFW_RELEASE; //0
+    static int oldStateError = GLFW_RELEASE; //0
+    static int oldStateTube = GLFW_RELEASE; //0
+
+    int newStateProcessus = glfwGetKey(window, GLFW_KEY_P); // 1 if pressed
+    if (newStateProcessus == GLFW_RELEASE && oldStateProcessus == GLFW_PRESS)
+    {
+        pPieceArray.insert(pPieceArray.end(), newProcessus);
+    }
+    oldStateProcessus = newStateProcessus;
+
+    int newStateIn = glfwGetKey(window, GLFW_KEY_I);
+    if (newStateIn == GLFW_RELEASE && oldStateIn == GLFW_PRESS)
+    {
+        pPieceArray.insert(pPieceArray.end(), newIn);
+    }
+    oldStateIn = newStateIn;
+
+    int newStateOut = glfwGetKey(window, GLFW_KEY_O);
+    if (newStateOut == GLFW_RELEASE && oldStateOut == GLFW_PRESS)
+    {
+        pPieceArray.insert(pPieceArray.end(), newOut);
+    }
+    oldStateOut = newStateOut;
+
+    int newStateError = glfwGetKey(window, GLFW_KEY_E);
+    if (newStateError == GLFW_RELEASE && oldStateError == GLFW_PRESS)
+    {
+        pPieceArray.insert(pPieceArray.end(), newError);
+    }
+    oldStateError = newStateError;
+
+    int newStateTube = glfwGetKey(window, GLFW_KEY_T);
+    if (newStateTube == GLFW_RELEASE && oldStateTube == GLFW_PRESS)
+    {
+        pPieceArray.insert(pPieceArray.end(), newTube);
+    }
+    oldStateTube = newStateTube;
+}
+
+void updatePiecePosition(GLFWwindow* window, const double& xCursor, const double& yCursor, vector <Piece>& pPieceArray)
+{
+    for (int i = 0; i < pPieceArray.size(); i++)
+    {
+        if (pPieceArray[i].isPointInsideForm(xCursor, yCursor))
+        {
+            mouvForm(pPieceArray[i], xCursor, yCursor);
+            return; // Permet de selectionner une seule piece
+        }
+    }
+}
+
+void supressPiece(GLFWwindow* window, const double& xCursor, const double& yCursor, vector <Piece>& pPieceArray)
+{
+    for (int i = 0; i < pPieceArray.size(); i++)
+    {
+        if (pPieceArray[i].isPointInsideForm(xCursor, yCursor))
+        {
+            pPieceArray.erase(pPieceArray.begin() + i);
+        }
+    }
+}
+
+void drawPiece(vector <Piece> pPieceArray)
+{
+    for (int i = 0; i < pPieceArray.size(); i++)
+    {
+        drawTriangle(pPieceArray[i].pointXY, pPieceArray[i].contourXY);
+    }
 }
 
 void cd(const string& pCommand, string& pPath) {
@@ -216,6 +250,9 @@ int main()
     my_popen(vCommand, vOutput, path);
     char c[100];
 
+    //GLFWwindow* window;
+    //bool processusMove = false;
+
     //taille de la fenetre
     int windowWidth = 1900;
     int windowHeight = 1060;
@@ -230,7 +267,7 @@ int main()
     }
 
     // Cr�ation de la fen�tre
-    window = glfwCreateWindow(windowWidth, windowHeight, "Triangle OpenGL", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "PUSH", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -246,7 +283,9 @@ int main()
     glClearColor(0.969f, 0.941f, 0.941f, 0.0f);
 
     // Cr�e les pi�ces
-    Processus forme = Processus();
+    vector <Piece> pieceArray;
+
+    //Processus forme = Processus();
 
 
     // Boucle principale
@@ -255,23 +294,24 @@ int main()
         //met a jour la valeur de la position du curseur
         PositionCursor(window, xCursor, yCursor, windowWidth, windowHeight);
 
+        createPiece(window, pieceArray);
+
         // Effacer le contenu de la fen�tre
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Mise � jour du triangle
-        //mouvForm(forme.dataX, forme.dataY);
-        //mouvTriangle(forme.x1, forme.y1);
+        // Mise � jour des pieces
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye
         {
-            if (forme.isPointInsideForm(xCursor, yCursor))
-            {
-                forme.mouvForm(xCursor, yCursor);
-            }
-
+            updatePiecePosition(window, xCursor, yCursor, pieceArray);
+        }
+        // Suppression des pieces
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) //regarde si le bouton droit est appuye
+        {
+            supressPiece(window, xCursor, yCursor, pieceArray);
         }
 
-        // Dessiner le triangle
-        drawTriangle(forme.pointX, forme.pointY);
+        // Dessiner les pieces
+        drawPiece(pieceArray);
 
         // �change des tampons d'affichage
         glfwSwapBuffers(window);
