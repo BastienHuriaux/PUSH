@@ -82,64 +82,42 @@ void PositionCursor(GLFWwindow* pWindow, double& xCursor, double& yCursor, const
 }
 
 
-void createPiece(GLFWwindow* pWindow, vector <Piece>& pPieceArray)//, bool& pProcessMove) 
+void createPiece(GLFWwindow* pWindow, vector <Piece>& pPieceArray, string pPieceType)//, bool& pProcessMove) 
 {
+    //PieceType peut etre Processus, In, Out, Error, Tube
+
     Piece newProcessus = Piece(Type::Processus);
     Piece newIn = Piece(Type::In);
     Piece newOut = Piece(Type::Out);
     Piece newError = Piece(Type::Error);
     Piece newTube = Piece(Type::Tube);
 
-    /*
     static int oldState = GLFW_RELEASE;//0
-    int newState = glfwGetKey(window, GLFW_KEY_ENTER);// 1 if pressed
+    int newState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);// 1 if pressed
     if (newState == GLFW_RELEASE && oldState == GLFW_PRESS)
     {
-        pPieceArray.insert(pPieceArray.end(), newProcessus);
+        if (pPieceType.compare("Processus"))
+        {
+            pPieceArray.insert(pPieceArray.end(), newProcessus);
+        }
+        else if (pPieceType.compare("In"))
+        {
+            pPieceArray.insert(pPieceArray.end(), newIn);
+        }
+        else if (pPieceType.compare("Out"))
+        {
+            pPieceArray.insert(pPieceArray.end(), newOut);
+        }
+        else if (pPieceType.compare("Error"))
+        {
+            pPieceArray.insert(pPieceArray.end(), newError);
+        }
+        else if (pPieceType.compare("Tube"))
+        {
+            pPieceArray.insert(pPieceArray.end(), newTube);
+        }
     }
     oldState = newState;
-    */
-
-    static int oldStateProcessus = GLFW_RELEASE; //0
-    static int oldStateIn = GLFW_RELEASE; //0
-    static int oldStateOut = GLFW_RELEASE; //0
-    static int oldStateError = GLFW_RELEASE; //0
-    static int oldStateTube = GLFW_RELEASE; //0
-
-    int newStateProcessus = glfwGetKey(window, GLFW_KEY_P); // 1 if pressed
-    if (newStateProcessus == GLFW_RELEASE && oldStateProcessus == GLFW_PRESS)
-    {
-        pPieceArray.insert(pPieceArray.end(), newProcessus);
-    }
-    oldStateProcessus = newStateProcessus;
-
-    int newStateIn = glfwGetKey(window, GLFW_KEY_I);
-    if (newStateIn == GLFW_RELEASE && oldStateIn == GLFW_PRESS)
-    {
-        pPieceArray.insert(pPieceArray.end(), newIn);
-    }
-    oldStateIn = newStateIn;
-
-    int newStateOut = glfwGetKey(window, GLFW_KEY_O);
-    if (newStateOut == GLFW_RELEASE && oldStateOut == GLFW_PRESS)
-    {
-        pPieceArray.insert(pPieceArray.end(), newOut);
-    }
-    oldStateOut = newStateOut;
-
-    int newStateError = glfwGetKey(window, GLFW_KEY_E);
-    if (newStateError == GLFW_RELEASE && oldStateError == GLFW_PRESS)
-    {
-        pPieceArray.insert(pPieceArray.end(), newError);
-    }
-    oldStateError = newStateError;
-
-    int newStateTube = glfwGetKey(window, GLFW_KEY_T);
-    if (newStateTube == GLFW_RELEASE && oldStateTube == GLFW_PRESS)
-    {
-        pPieceArray.insert(pPieceArray.end(), newTube);
-    }
-    oldStateTube = newStateTube;
 }
 
 void updatePiecePosition(GLFWwindow* window, const double& xCursor, const double& yCursor, vector <Piece>& pPieceArray)
@@ -296,12 +274,12 @@ int main()
     vector <Piece> pieceArray;
 
     // Boutons
-    Bouton Processus = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Processus");
-    Bouton In = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "In");
-    Bouton Out = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Out");
-    Bouton Error = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Error");
-    Bouton Tube = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Tube");
-    vector<Bouton> boutonArray = { Processus, In, Out, Error, Tube };
+    Bouton B_Processus = Bouton(-0.8f, 0.9f, 0.15f, 0.1f, "Processus");
+    Bouton B_In = Bouton(-0.4f, 0.9f, 0.15f, 0.1f, "In");
+    Bouton B_Out = Bouton(-0.0f, 0.9f, 0.15f, 0.1f, "Out");
+    Bouton B_Error = Bouton(0.4f, 0.9f, 0.15f, 0.1f, "Error");
+    Bouton B_Tube = Bouton(0.8f, 0.9f, 0.15f, 0.1f, "Tube");
+    vector<Bouton> boutonArray = { B_Processus, B_In, B_Out, B_Error, B_Tube };
 
 
     // Boucle principale
@@ -310,8 +288,6 @@ int main()
         //met a jour la valeur de la position du curseur
         PositionCursor(window, xCursor, yCursor, windowWidth, windowHeight);
 
-        createPiece(window, pieceArray);
-
         // Effacer le contenu de la fen�tre
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -319,18 +295,17 @@ int main()
         for (int i = 0; i < boutonArray.size(); i++)
         {
             drawBouton(boutonArray[i].contourXY);
+
+            if (boutonArray[i].EstDansLeBouton(xCursor, yCursor))
+            {
+                createPiece(window, pieceArray, boutonArray[i].texte);
+            }
         }
 
         // Mise � jour des pieces
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye 
         {
             updatePiecePosition(window, xCursor, yCursor, pieceArray);
-
-            if (Processus.EstDansLeBouton(xCursor, yCursor))
-            {
-                cout << "ok" << endl;
-            }
-
         }
         // Suppression des pieces
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) //regarde si le bouton droit est appuye
