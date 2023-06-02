@@ -1,7 +1,7 @@
 ﻿// PUSH.cpp : définit le point d'entrée de l'application.
 //
 
-#include "PUSH.h"
+#include "PUSH.hpp"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -33,10 +33,21 @@ void drawTriangle(vector<vector<float>> pPointXY, vector<vector<float>> pContour
     glEnd();
 
     // Permet de dessiner les contours
-    glBegin(GL_LINE_STRIP);
+    glBegin(GL_LINE_LOOP);
     for (int i = 0; i < pContourXY[0].size(); i++)
     {
         glColor3f(1.0f, 0.0f, 0.0f); // Rouge
+        glVertex2f(pContourXY[0][i], pContourXY[1][i]);
+    }
+    glEnd();
+}
+
+void drawBouton(vector<vector<float>> pContourXY) {
+    // Permet de dessiner les contours
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < pContourXY[0].size(); i++)
+    {
+        glColor3f(0.0f, 0.0f, 1.0f); // Bleu
         glVertex2f(pContourXY[0][i], pContourXY[1][i]);
     }
     glEnd();
@@ -88,7 +99,6 @@ void createPiece(GLFWwindow* pWindow, vector <Piece>& pPieceArray)//, bool& pPro
     }
     oldState = newState;
     */
-
 
     static int oldStateProcessus = GLFW_RELEASE; //0
     static int oldStateIn = GLFW_RELEASE; //0
@@ -282,10 +292,16 @@ int main()
     // Colorisation
     glClearColor(0.969f, 0.941f, 0.941f, 0.0f);
 
-    // Cr�e les pi�ces
+    // Vecteur contenant les pièces
     vector <Piece> pieceArray;
 
-    //Processus forme = Processus();
+    // Boutons
+    Bouton Processus = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Processus");
+    Bouton In = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "In");
+    Bouton Out = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Out");
+    Bouton Error = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Error");
+    Bouton Tube = Bouton(0.0f, 0.0f, 1.0f, 1.0f, "Tube");
+    vector<Bouton> boutonArray = { Processus, In, Out, Error, Tube };
 
 
     // Boucle principale
@@ -299,10 +315,22 @@ int main()
         // Effacer le contenu de la fen�tre
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Les boutons
+        for (int i = 0; i < boutonArray.size(); i++)
+        {
+            drawBouton(boutonArray[i].contourXY);
+        }
+
         // Mise � jour des pieces
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye
         {
             updatePiecePosition(window, xCursor, yCursor, pieceArray);
+
+            if (Processus.EstDansLeBouton(xCursor, yCursor))
+            {
+                cout << "ok" << endl;
+            }
+
         }
         // Suppression des pieces
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) //regarde si le bouton droit est appuye

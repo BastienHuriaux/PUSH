@@ -55,8 +55,8 @@ struct Piece {
 		{
 			pointXY = { { x1, x2, x2, x1, x1, x2, x2, x2, x5, x5, x2, x5 },
 						{ y2, y2, y1, y2, y1, y1, y4, y3, y4, y4, y3, y3 } };
-			contourXY = { { x1, x2, x2, x5, x5, x2, x2, x1, x1},
-						  { y2, y2, y4, y4, y3, y3, y1, y1, y2} };
+			contourXY = { { x1, x2, x2, x5, x5, x2, x2, x1},
+						  { y2, y2, y4, y4, y3, y3, y1, y1} };
 		}
 		if (type == Type::Out)
 		{
@@ -103,4 +103,56 @@ struct Piece {
 		return false;
 	}
 
+};
+
+
+struct Bouton
+{
+	// Position du centre du bouton
+	float posX;
+	float posY;
+
+	float x1, x2;
+	float y1, y2;
+
+	// Longueur et hauteur du bouton
+	float longueur;
+	float hauteur;
+
+	vector <vector<float>> contourXY;
+
+	string texte = ""; // texte dans le bouton
+
+	Bouton(float pPosX, float pPosY, float pLongueur, float pLargeur, string pTexte)
+	{
+		posX = pPosX;
+		posY = pPosY;
+		longueur = pLongueur;
+		hauteur = pLargeur;
+		texte = pTexte;
+		createBouton();
+	}
+
+	void createBouton()
+	{
+		x1 = posX - longueur / 2;
+		x2 = posX + longueur / 2;
+		y1 = posY - hauteur / 2;
+		y2 = posY + hauteur / 2;
+
+		contourXY = { {x1, x2, x2, x1}, {y2, y2, y1, y1} };
+	}
+
+	// permet de savoir si on clique sur le bouton
+	bool EstDansLeBouton(const double xCursor, const double yCursor)
+	{
+		if (xCursor > x1 && xCursor < x2 && yCursor > y1 && yCursor < y2)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 };

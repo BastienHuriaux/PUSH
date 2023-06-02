@@ -3,7 +3,7 @@
 #
 
 # Ajoutez une source à l'exécutable de ce projet.
-add_executable (PUSH "PUSH.cpp" "PUSH.h" "shader.cpp" "piece.cpp")
+add_executable (PUSH "PUSH.cpp" "PUSH.hpp" "shader.cpp" "structure.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET PUSH PROPERTY CXX_STANDARD 20)

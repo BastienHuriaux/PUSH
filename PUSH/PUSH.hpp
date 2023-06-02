@@ -20,6 +20,6 @@
 
 #include "shader.hpp"
 #include <GL/freeglut.h>
-#include "piece.cpp"
+#include "structure.cpp"
 
 // TODO: Référencez ici les en-têtes supplémentaires nécessaires à votre programme.
