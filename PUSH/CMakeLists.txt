@@ -12,7 +12,6 @@ endif()
 add_subdirectory(external/glfw)
 add_subdirectory(external/glew)
 add_subdirectory(external/glm)
-add_subdirectory(external/glad)
 add_subdirectory(external/freetype2)
 add_subdirectory(external/glut)
 
@@ -21,18 +20,15 @@ add_subdirectory(external/glut)
 target_include_directories(PUSH PUBLIC external/glfw/include 
 										external/glew/include
 										external/freetype2/include
-										external/glad/include
 										external/glut/include)
 
 target_link_directories(PUSH PRIVATE external/glfw/src 
 									external/glew/src
 									external/freetype2/src
-									external/glad/src
 									external/glut/src)
 
 target_link_libraries(PUSH glfw 
 						libglew_static
 						glm
 						freetype
-						glad
 						freeglut)
