@@ -15,6 +15,17 @@ GLFWwindow* window;
 // 
 //      Fonctions
 
+void output(float x, float y, float r, float g, float b, const char* string)
+{
+	glColor3f(r, g, b);
+	glRasterPos2f(x, y);
+	int len, i;
+	len = (int)strlen(string);
+	for (i = 0; i < len; i++) {
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
+	}
+}
+
 void mouvForm(Piece& pPiece, const double xCursor, const double yCursor)
 {
 	if (xCursor > -0.95 && xCursor < 0.42
@@ -281,7 +292,7 @@ void init(string& pPath) {
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
     //LOL
 	cout << "Hello CMake." << endl;
@@ -318,13 +329,16 @@ int main()
         return -1;
     }
 
-    // Cr�ation de la fen�tre
+    // Creation de la fen�tre
 	window = glfwCreateWindow(windowWidth, windowHeight, "Triangle OpenGL", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
 		return -1;
 	}
+
+	// Initialisation de GLUT
+	glutInit(&argc, argv);
 
 	// Configuration de GLFW
 	glfwMakeContextCurrent(window);
@@ -346,7 +360,7 @@ int main()
 
 	// Les Zones
 
-	// La zone 2 a �t� supprim�e ! 
+	// La zone 2 a ete supprim�e ! 
 	Zone Z_Zone3 = Zone(-0.25f, -0.6779f, 1.4999f, 0.3599f, 3); // Zone bas
 	Zone Z_Zone4 = Zone(-0.25f, 0.25f, 1.499f, 1.499f, 4); // Zone centrale
 	Zone Z_Zone5 = Zone(0.74999f, 0.5f, 0.5f, 0.9999f, 5); // Zone haut gauche
@@ -416,7 +430,7 @@ int main()
 			}
 		}
 
-		// Mise � jour des pieces
+		// Mise a jour des pieces
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye 
 		{
 			updatePiecePosition(window, xCursor, yCursor, pieceArray);
@@ -430,10 +444,23 @@ int main()
 		// Dessiner les pieces
 		drawPiece(pieceArray);
 
-		// �change des tampons d'affichage
+		// Ecrit le texte sur les bouttons 
+		char* cProc = "Processus";
+		char* cIn = "In";
+		char* cOut = "Out";
+		char* cError = "Error";
+		char* cTube = "Tube";
+		output(-0.75f, 0.9f, 1, 1, 1, cProc);
+		output(-0.41f, 0.9f, 1, 1, 1, cIn);
+		output(-0.12f, 0.9f, 1, 1, 1, cOut);
+		output(0.175f, 0.9f, 1, 1, 1, cError);
+		output(0.475f, 0.9f, 1, 1, 1, cTube);
+
+
+		// Echange des tampons d'affichage
 		glfwSwapBuffers(window);
 
-		// V�rification des �v�nements de la fen�tre
+		// Verification des �v�nements de la fen�tre
 		glfwPollEvents();
 	}
 

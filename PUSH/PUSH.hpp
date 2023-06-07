@@ -15,9 +15,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include "shader.hpp"
 #include <GL/freeglut.h>
 #include "structure.cpp"
