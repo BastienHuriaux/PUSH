@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <GL/glew.h>
+#include <GL/glui.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
