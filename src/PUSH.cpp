@@ -295,25 +295,15 @@ void init(string& pPath) {
 int main(int argc, char* argv[])
 {
     //LOL
-	cout << "Hello CMake." << endl;
+    cout << "Hello CMake." << endl;
     string path = ".";
     init(path);
     //cout << current_path.back() << "\n";
-    //We have a command
-    string vCommand = "cd test/test2";
-    //We save the result of the command in output
-    vector<string> vOutput;
-    my_popen(vCommand, vOutput, path);
-    //We check if the output has the good values
-    for (vector<string>::iterator vIterator = vOutput.begin(); vIterator != vOutput.end(); ++vIterator)
-    {
-       cout << *vIterator << endl;
-    }//It has
-    vCommand = "cd ../../test";
-    my_popen(vCommand, vOutput, path);
-    char c[100];
-
-    //GLFWwindow* window;
+    //for (vector<string>::iterator vIterator = vOutput.begin(); vIterator != vOutput.end(); ++vIterator)
+    //{
+    //   cout << *vIterator << endl;
+    //}//It has
+    
     //bool processusMove = false;
 
     //taille de la fenetre
