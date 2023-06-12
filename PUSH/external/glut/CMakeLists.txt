@@ -123,121 +123,56 @@ ELSE()
     )
 ENDIF()
 
-IF(WIN32)
+# UNIX (Wayland)
+IF(FREEGLUT_WAYLAND)
     LIST(APPEND FREEGLUT_SRCS
-        src/mswin/fg_cursor_mswin.c
-        src/mswin/fg_display_mswin.c
-        src/mswin/fg_ext_mswin.c
-        src/mswin/fg_gamemode_mswin.c
-        src/mswin/fg_init_mswin.c
-        src/mswin/fg_internal_mswin.h
-        src/mswin/fg_input_devices_mswin.c
-        src/mswin/fg_joystick_mswin.c
-        src/mswin/fg_main_mswin.c
-        src/mswin/fg_menu_mswin.c
-        src/mswin/fg_spaceball_mswin.c
-        src/mswin/fg_state_mswin.c
-        src/mswin/fg_structure_mswin.c
-        src/mswin/fg_window_mswin.c
-	src/mswin/fg_cmap_mswin.c
-        ${CMAKE_BINARY_DIR}/freeglut.rc # generated below from freeglut.rc.in
+        src/wayland/fg_cursor_wl.c
+        src/wayland/fg_ext_wl.c
+        src/wayland/fg_gamemode_wl.c
+        src/wayland/fg_init_wl.c
+        src/wayland/fg_internal_wl.h
+        src/wayland/fg_input_devices_wl.c
+        src/wayland/fg_main_wl.c
+        src/wayland/fg_state_wl.c
+        src/wayland/fg_structure_wl.c
+        src/wayland/fg_window_wl.c
+        # font, serial port & joystick code are agnostic
+        src/x11/fg_glutfont_definitions_x11.c
+        src/x11/fg_input_devices_x11.c
+        src/x11/fg_joystick_x11.c
     )
-    IF (MSVC AND NOT CMAKE_CL_64)
-        # .def file only for 32bit Windows builds (TODO: MSVC only right
-        # now, needed for any other Windows platform?)
-        LIST(APPEND FREEGLUT_SRCS
-            ${CMAKE_BINARY_DIR}/freeglutdll.def # generated below from src/freeglutdll.def.in
-        )
-    ENDIF()
-
-ELSEIF(ANDROID OR BLACKBERRY)
-    # BlackBerry and Android share some similar design concepts and ideas, as with many mobile devices.
-    # As such, some classes can be shared between the two. XXX: Possibly rename shareable classes to
-    # a more generic name. *_stub? *_mobile?
-    LIST(APPEND FREEGLUT_SRCS
-        src/android/fg_cursor_android.c
-        src/android/fg_ext_android.c
-        src/android/fg_gamemode_android.c
-        src/android/fg_joystick_android.c
-        src/android/fg_spaceball_android.c
-    )
-    IF(ANDROID)
-        LIST(APPEND FREEGLUT_SRCS
-            src/android/native_app_glue/android_native_app_glue.c
-            src/android/native_app_glue/android_native_app_glue.h
-            src/android/fg_internal_android.h
-            src/android/fg_init_android.c
-            src/android/fg_input_devices_android.c
-            src/android/fg_main_android.c
-            src/android/fg_main_android.h
-            src/android/fg_runtime_android.c
-            src/android/fg_state_android.c
-            src/android/fg_structure_android.c
-            src/android/fg_window_android.c
-        )
-    ELSE()
-        LIST(APPEND FREEGLUT_SRCS
-            src/blackberry/fg_internal_blackberry.h
-            src/blackberry/fg_init_blackberry.c
-            src/x11/fg_input_devices_x11.c
-            src/blackberry/fg_main_blackberry.c
-            src/blackberry/fg_state_blackberry.c
-            src/blackberry/fg_structure_blackberry.c
-            src/blackberry/fg_window_blackberry.c
-        )
-    ENDIF()
-
+# UNIX (X11)
 ELSE()
-    # UNIX (Wayland)
-    IF(FREEGLUT_WAYLAND)
+    LIST(APPEND FREEGLUT_SRCS
+        src/x11/fg_cursor_x11.c
+        src/x11/fg_ext_x11.c
+        src/x11/fg_gamemode_x11.c
+        src/x11/fg_glutfont_definitions_x11.c
+        src/x11/fg_init_x11.c
+        src/x11/fg_internal_x11.h
+        src/x11/fg_input_devices_x11.c
+        src/x11/fg_joystick_x11.c
+        src/x11/fg_main_x11.c
+        src/x11/fg_menu_x11.c
+        src/x11/fg_spaceball_x11.c
+        src/x11/fg_state_x11.c
+        src/x11/fg_structure_x11.c
+        src/x11/fg_window_x11.c
+        src/x11/fg_xinput_x11.c
+        src/x11/fg_cmap_x11.c
+    )
+    IF(NOT(FREEGLUT_GLES))
         LIST(APPEND FREEGLUT_SRCS
-            src/wayland/fg_cursor_wl.c
-            src/wayland/fg_ext_wl.c
-            src/wayland/fg_gamemode_wl.c
-            src/wayland/fg_init_wl.c
-            src/wayland/fg_internal_wl.h
-            src/wayland/fg_input_devices_wl.c
-            src/wayland/fg_main_wl.c
-            src/wayland/fg_state_wl.c
-            src/wayland/fg_structure_wl.c
-            src/wayland/fg_window_wl.c
-            # font, serial port & joystick code are agnostic
-            src/x11/fg_glutfont_definitions_x11.c
-            src/x11/fg_input_devices_x11.c
-            src/x11/fg_joystick_x11.c
+            src/x11/fg_internal_x11_glx.h
+            src/x11/fg_display_x11_glx.c
+            src/x11/fg_state_x11_glx.c
+            src/x11/fg_state_x11_glx.h
+            src/x11/fg_window_x11_glx.c
+            src/x11/fg_window_x11_glx.h
         )
-    # UNIX (X11)
-    ELSE()
-        LIST(APPEND FREEGLUT_SRCS
-            src/x11/fg_cursor_x11.c
-            src/x11/fg_ext_x11.c
-            src/x11/fg_gamemode_x11.c
-            src/x11/fg_glutfont_definitions_x11.c
-            src/x11/fg_init_x11.c
-            src/x11/fg_internal_x11.h
-            src/x11/fg_input_devices_x11.c
-            src/x11/fg_joystick_x11.c
-            src/x11/fg_main_x11.c
-            src/x11/fg_menu_x11.c
-            src/x11/fg_spaceball_x11.c
-            src/x11/fg_state_x11.c
-            src/x11/fg_structure_x11.c
-            src/x11/fg_window_x11.c
-            src/x11/fg_xinput_x11.c
-	    src/x11/fg_cmap_x11.c
-        )
-        IF(NOT(FREEGLUT_GLES))
-            LIST(APPEND FREEGLUT_SRCS
-                src/x11/fg_internal_x11_glx.h
-                src/x11/fg_display_x11_glx.c
-                src/x11/fg_state_x11_glx.c
-                src/x11/fg_state_x11_glx.h
-                src/x11/fg_window_x11_glx.c
-                src/x11/fg_window_x11_glx.h
-            )
-        ENDIF()
     ENDIF()
 ENDIF()
+
 
 # OpenGL ES requires EGL, and so does Wayland
 IF(FREEGLUT_GLES OR FREEGLUT_WAYLAND)
@@ -323,29 +258,6 @@ IF (NOT WIN32)
     LIST(APPEND CMAKE_REQUIRED_LIBRARIES m)
 ENDIF()
 
-IF(WIN32)
-    # hide insecure CRT warnings, common practice
-    ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-    IF(MSVC)
-        SET( CMAKE_DEBUG_POSTFIX "d" )
-    ENDIF(MSVC)
-    
-    IF(NOT(MSVC_VERSION LESS "1600"))
-    # minimum requirement for WM_TOUCH device
-        ADD_DEFINITIONS(-D_WIN32_WINNT=0x0601)
-        ADD_DEFINITIONS(-DWINVER=0x0601)
-    ELSEIF(NOT(MSVC_VERSION LESS "1300"))
-    # minimum requirement for spaceball device
-        ADD_DEFINITIONS(-D_WIN32_WINNT=0x0501)
-        ADD_DEFINITIONS(-DWINVER=0x0501)
-    ELSE()
-    # enable the use of Win2000 APIs (needed for really old compilers like MSVC6)
-        ADD_DEFINITIONS(-D_WIN32_WINNT=0x0500)
-        ADD_DEFINITIONS(-DWINVER=0x0500)
-    ENDIF()
-
-ENDIF()
-
 IF(CMAKE_COMPILER_IS_GNUCC)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
   IF(NOT(ANDROID OR BLACKBERRY OR FREEGLUT_WAYLAND))
@@ -353,22 +265,6 @@ IF(CMAKE_COMPILER_IS_GNUCC)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic")
   ENDIF()
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
-
-IF(ANDROID)
-    # -landroid for ANativeWindow
-    # -llog for native Android logging
-    LIST(APPEND LIBS android log)
-ELSEIF(BLACKBERRY)
-    # -lbps for event loop
-    # -screen for native screen
-    LIST(APPEND LIBS bps screen)
-
-    if(NOT PLAYBOOK)
-        # -lslog2 for logging
-        # -pps for low-level screen manipulation
-        LIST(APPEND LIBS slog2 pps)
-    ENDIF()
-ENDIF()
 
 INCLUDE(CheckFunctionExists)
 INCLUDE(CheckTypeSize)
@@ -409,15 +305,6 @@ ENDIF()
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
-IF(WIN32)
-    # we also have to generate freeglut.rc, which contains the version
-    # number
-    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/freeglut.rc.in ${CMAKE_BINARY_DIR}/freeglut.rc)
-    IF (MSVC AND NOT CMAKE_CL_64)
-        # .def file only for 32bit Windows builds with Visual Studio
-        CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/freeglutdll.def.in ${CMAKE_BINARY_DIR}/freeglutdll.def)
-    ENDIF()
-ENDIF()
 
 IF(FREEGLUT_BUILD_SHARED_LIBS)
     ADD_LIBRARY(freeglut SHARED ${FREEGLUT_SRCS})
@@ -428,29 +315,8 @@ ENDIF()
 
 
 SET(LIBNAME freeglut)
-IF(WIN32)
-    IF(FREEGLUT_REPLACE_GLUT)
-        SET(LIBNAME glut)
-    ENDIF()
 
-    LIST(APPEND LIBS winmm gdi32)
-    IF(FREEGLUT_BUILD_SHARED_LIBS)
-        TARGET_COMPILE_DEFINITIONS(freeglut PRIVATE FREEGLUT_EXPORTS)
-        SET_TARGET_PROPERTIES(freeglut PROPERTIES OUTPUT_NAME ${LIBNAME})
-    ENDIF()
-    IF(FREEGLUT_BUILD_STATIC_LIBS)
-        TARGET_COMPILE_DEFINITIONS(freeglut_static PUBLIC FREEGLUT_STATIC)
-        IF(FREEGLUT_REPLACE_GLUT)
-            SET_TARGET_PROPERTIES(freeglut_static PROPERTIES OUTPUT_NAME ${LIBNAME})
-        ENDIF()
-        # need to set machine:x64 for linker, at least for VC10, and
-        # doesn't hurt for older compilers:
-        # http://public.kitware.com/Bug/view.php?id=11240#c22768
-        IF (CMAKE_CL_64)
-            SET_TARGET_PROPERTIES(freeglut_static PROPERTIES STATIC_LIBRARY_FLAGS "/machine:x64")
-        ENDIF()
-    ENDIF()
-ELSE()
+
     # on UNIX we need to make sure:
     # - all shared libraries must have a soname/version, see :
     #   http://sourceware.org/autobook/autobook/autobook_91.html#SEC91
@@ -500,7 +366,7 @@ ELSE()
             SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gstabs+")
         ENDIF()
     ENDIF()
-ENDIF()
+
 IF(FREEGLUT_BUILD_SHARED_LIBS)
     TARGET_LINK_LIBRARIES(freeglut ${LIBS})
     TARGET_COMPILE_DEFINITIONS(freeglut PUBLIC ${PUBLIC_DEFINITIONS})
@@ -572,40 +438,10 @@ MACRO(ADD_DEMO name)
     ENDIF()
 ENDMACRO()
 
-ADD_DEMO(CallbackMaker   progs/demos/CallbackMaker/CallbackMaker.c)
-ADD_DEMO(Fractals        progs/demos/Fractals/fractals.c)
-ADD_DEMO(Fractals_random progs/demos/Fractals_random/fractals_random.c)
-ADD_DEMO(Lorenz          progs/demos/Lorenz/lorenz.c)
-IF (NOT WIN32)
-    ADD_DEMO(One             progs/demos/One/one.c)
-ELSE()
-    ADD_DEMO(One             progs/demos/One/one.c
-                             progs/demos/One/one.rc)
-ENDIF()
-ADD_DEMO(resizer         progs/demos/resizer/resizer.c)
-ADD_DEMO(multi-touch     progs/demos/multi-touch/multi-touch.c)
-ADD_DEMO(shapes          progs/demos/shapes/shapes.c
-                         progs/demos/shapes/glmatrix.h
-                         progs/demos/shapes/glmatrix.c)
-ADD_DEMO(smooth_opengl3  progs/demos/smooth_opengl3/smooth_opengl3.c)
-ADD_DEMO(spaceball       progs/demos/spaceball/spaceball.c
-                         progs/demos/spaceball/vmath.c
-                         progs/demos/spaceball/vmath.h)
-ADD_DEMO(joystick        progs/demos/joystick/joystick.c)
-ADD_DEMO(subwin          progs/demos/subwin/subwin.c)
-ADD_DEMO(timer           progs/demos/timer/timer.c)
-ADD_DEMO(timer_callback  progs/demos/timer_callback/timer.c)
-ADD_DEMO(keyboard        progs/demos/keyboard/keyboard.c)
-ADD_DEMO(indexed_color   progs/demos/indexed_color/idxcol.c)
-ADD_DEMO(3dview          progs/demos/3dview/3dview.c)
-
-
 
 # pkg-config support, to install at $(libdir)/pkgconfig
 # Define static build dependencies
-IF(WIN32)
-  SET(PC_LIBS_PRIVATE "-lopengl32 -lwinmm -lgdi32")
-ELSEIF(FREEGLUT_GLES)
+IF(FREEGLUT_GLES)
   IF(ANDROID)
     SET(PC_LIBS_PRIVATE "-llog -landroid -lGLESv2 -lGLESv1_CM -lEGL -lm")
   ELSEIF(BLACKBERRY)

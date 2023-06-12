@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8.12)
 project(glui)
 set(PROJECT_VERSION 2.37)
 
-set(GLUT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/PUSH/external/glut")
-#find_package(GLUT REQUIRED)
+#set(GLUT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/PUSH/external/glut")
+find_package(GLUT REQUIRED)
 find_package(OpenGL REQUIRED)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -56,7 +56,8 @@ target_include_directories(glui_obj
       PUBLIC
       "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
       ${OPENGL_INCLUDE_DIR}
-      "$<BUILD_INTERFACE:${GLUT_INCLUDE_DIR}/include>")
+      ${GLUT_INCLUDE_DIR})
+      #"$<BUILD_INTERFACE:${GLUT_INCLUDE_DIR}/include>")
 # we need to enable -fPIC this so that the same object code can be used to
 # create static *and* shared libraries without double compilation
 set_target_properties( glui_obj PROPERTIES POSITION_INDEPENDENT_CODE 1)
@@ -67,8 +68,9 @@ target_include_directories(glui
       "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>"
       ${OPENGL_INCLUDE_DIR}
-      "$<BUILD_INTERFACE:${GLUT_INCLUDE_DIR}/include>"
-      "$<INSTALL_INTERFACE:include>")
+      ${GLUT_INCLUDE_DIR})
+      #"$<BUILD_INTERFACE:${GLUT_INCLUDE_DIR}/include>"
+      #"$<INSTALL_INTERFACE:include>")
 target_link_libraries(glui PUBLIC ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 set_target_properties(glui PROPERTIES
   DEBUG_POSTFIX "d"
@@ -81,27 +83,14 @@ target_include_directories(glui_static
       "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>"
       ${OPENGL_INCLUDE_DIR}
-      "$<BUILD_INTERFACE:${GLUT_INCLUDE_DIR}/include>"
-      "$<INSTALL_INTERFACE:include>")
+      ${GLUT_INCLUDE_DIR})
+      #"$<BUILD_INTERFACE:${GLUT_INCLUDE_DIR}/include>"
+      #"$<INSTALL_INTERFACE:include>")
 target_link_libraries(glui_static PUBLIC ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 set_target_properties(glui_static PROPERTIES DEBUG_POSTFIX "d")
 
 add_executable(ppm2array tools/ppm.cpp tools/ppm2array.cpp)
 target_link_libraries(ppm2array)
-
-add_executable(example1 example/example1.cpp)
-target_link_libraries(example1 glui_static ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-add_executable(example2 example/example2.cpp)
-target_link_libraries(example2 glui_static ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-add_executable(example3 example/example3.cpp)
-target_link_libraries(example3 glui_static ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-add_executable(example4 example/example4.cpp)
-target_link_libraries(example4 glui_static ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-add_executable(example5 example/example5.cpp)
-target_link_libraries(example5 glui_static ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-add_executable(example6 example/example6.cpp)
-target_link_libraries(example6 glui_static ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-
 
 
 ####
