@@ -5,466 +5,514 @@
 
 using namespace std;
 namespace fs = std::filesystem;
-using namespace glm;
 
-GLFWwindow* window;
+//Global arrays' initialization
 
+Zone ZonesArray[5];
+Button ButtonsArray[7];
+vector <shared_ptr<Piece>> pieceArray;
+vector <shared_ptr<Piece>> puzzleArray;
+bool LeftClickState = false;
+string CommandSentence = "";
 
 ///////////////////////////////////////////////////////////////////////////////
-//
+//	
 // 
 //      Fonctions
 
-void output(float x, float y, float r, float g, float b, const char* string)
+void drawShape(vector<vector<float>> pCoords, float pRed, float pGreen, float pBlue, int pDrawingType)
+{
+	glBegin(pDrawingType);
+	for (int i = 0; i < pCoords[0].size(); i++)
+	{
+		glColor3f(pRed, pGreen, pBlue);// Color
+		glVertex2f(pCoords[0][i], pCoords[1][i]);// Vertices
+	}
+	glEnd();
+}
+
+void drawTriangles(vector<vector<float>> pCoords)
+{
+	for (int i = 0; i < pCoords[0].size() - 2; i += 3)
+	{
+		vector<vector<float>> vCurrentTriangle = { {pCoords[0][i], pCoords[0][i + 1], pCoords[0][i + 2]},
+												   {pCoords[1][i], pCoords[1][i + 1], pCoords[1][i + 2]} };
+		drawShape(vCurrentTriangle, 0, 0, 1, GL_TRIANGLES);
+	}
+}
+
+void drawWriting(float x, float y, float r, float g, float b, string string)
 {
 	glColor3f(r, g, b);
 	glRasterPos2f(x, y);
 	int len, i;
-	len = (int)strlen(string);
+	len = (int)size(string);
 	for (i = 0; i < len; i++) {
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
 	}
 }
 
-void mouvForm(Piece& pPiece, const double xCursor, const double yCursor)
+void useButton(string pButtonText)
 {
-	if (xCursor > -0.95 && xCursor < 0.42
-		&& yCursor > -0.45 && yCursor < 0.95)
-	{
-		pPiece.x0 = xCursor; // D�placement horizontal
-		pPiece.y0 = yCursor; // D�placement vertical
-	}
+	shared_ptr<Processus> newProcessus = make_shared<Processus>();
+	shared_ptr<In> newIn = make_shared<In>();
+	shared_ptr<Out> newOut = make_shared<Out>();
+	shared_ptr<Error> newError = make_shared<Error>();
+	shared_ptr<Tube> newTube = make_shared<Tube>();
 
-	pPiece.createPoint(); // Permet de changer tout les points
+	if (pButtonText.compare("Processus") == 0)
+	{
+		pieceArray.insert(pieceArray.end(), newProcessus);
+	}
+	else if (pButtonText.compare("In") == 0)
+	{
+		pieceArray.insert(pieceArray.end(), newIn);
+	}
+	else if (pButtonText.compare("Out") == 0)
+	{
+		pieceArray.insert(pieceArray.end(), newOut);
+	}
+	else if (pButtonText.compare("Error") == 0)
+	{
+		pieceArray.insert(pieceArray.end(), newError);
+	}
+	else if (pButtonText.compare("Tube") == 0)
+	{
+		pieceArray.insert(pieceArray.end(), newTube);
+	}
+	else if (pButtonText.compare("Delete") == 0)
+	{
+		puzzleArray.clear();
+		shared_ptr<In> inStart = make_shared<In>();
+		inStart->x0 = -0.8;
+		inStart->y0 = 0.5;
+		puzzleArray.insert(puzzleArray.end(), inStart);
+	}
+	else if (pButtonText.compare("Execute") == 0)
+	{
+		glutLeaveMainLoop();
+	}
 }
 
-// Colorie l'interieur delimite par le contour 
-// Exception si l'on met GL_LINE_LOOP dans pVariable, cela ne dessinera que les contours
-void drawInterieur(vector<vector<float>> pContourXY, float pRouge, float pVert, float pBleu, int pVariable)
+void movePiece(shared_ptr<Piece>& pPiece, float pCursorX, float pCursorY)
 {
-	//pVariable peut etre : GL_TRIANGLES ou GL_POLYGON pour colorier l'interieur
-
-	glBegin(pVariable);
-	for (int i = 0; i < pContourXY[0].size(); i++)
+	if (pCursorX > -0.90 && pCursorX < 0.50
+		&& pCursorY > -0.75 && pCursorY < 0.75)
 	{
-		glColor3f(pRouge, pVert, pBleu);
-		glVertex2f(pContourXY[0][i], pContourXY[1][i]);
+		pPiece->x0 = pCursorX;
+		pPiece->y0 = pCursorY;
+		glutPostRedisplay();
 	}
-	glEnd();
 }
 
-// !!!!!! Cette fonction sert probablement a rien, A verifier !!!!!!
-void drawContour(vector<vector<float>> pContourXY, float pRouge, float pVert, float pBleu)
+void suppressPiece(int indice)
 {
-	// GL_LINE_LOOP Permet de ne dessiner que les contours;
-	drawInterieur(pContourXY, pRouge, pVert, pBleu, GL_LINE_LOOP);
+	pieceArray.erase(pieceArray.begin() + indice);
 }
 
-// Dessine les triangles qui composent les pieces
-void drawTriangle(vector<vector<float>> pPointXY, vector<vector<float>> pContourXY)
+void writingCommand()
 {
-	drawInterieur(pPointXY, 0.537f, 0.553f, 0.569, GL_TRIANGLES);
-
-	drawContour(pContourXY, 0.0f, 0.498f, 0.969f);
+	CommandSentence = "";
+	for (int i = 0; i < puzzleArray.size(); i++)
+	{
+		CommandSentence += puzzleArray[i]->text;
+	}
 }
 
-// Dessine les boutons
-void drawBouton(vector<vector<float>> pContourXY)
+void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 {
-	drawInterieur(pContourXY, 0.58f, 0.525f, 0.6f, GL_POLYGON);
+	// SE RENSEIGNER SUR CETTE MERDE
 
-	drawContour(pContourXY, 0.827f, 0.592f, 0.91f);
-}
-
-
-// Dessine les differentes zones, de 1 a 6
-void drawZone(vector<vector<float>> pContourXY, int pType)
-{
-	// Permet de dessiner l'interieur
-	float vRouge = 0.9;
-	float vVert = 0.9;
-	float vBleu = 0.9;
-
-	// Differentes couleurs pour chaque type
-	if (pType == 1)
+	// On compare les types des pièces
+	if (typeid(*pPiece) == typeid(Processus))
 	{
-		vRouge = 0.471;
-		vVert = 0.42;
-		vBleu = 0.49;
-	}
-	else if (pType == 2)
-	{
-		vRouge = 0.812;
-		vVert = 0.78;
-		vBleu = 0.82;
-	}
-	else if (pType == 3)
-	{
-		vRouge = 0.176;
-		vVert = 0.169;
-		vBleu = 0.18;
-	}
-	else if (pType == 4)
-	{
-		vRouge = 0.251;
-		vVert = 0.227;
-		vBleu = 0.259;
-	}
-	else if (pType == 5)
-	{
-		vRouge = 0.157;
-		vVert = 0.008;
-		vBleu = 0.212;
-	}
-	else if (pType == 6)
-	{
-		vRouge = 0.157;
-		vVert = 0.008;
-		vBleu = 0.212;
-	}
-
-	drawInterieur(pContourXY, vRouge, vVert, vBleu, GL_POLYGON);
-
-	drawContour(pContourXY, 0.671f, 0.027f, 0.89f);
-}
-
-void PositionCursor(GLFWwindow* pWindow, double& xCursor, double& yCursor, const int width, const int height)
-{
-	double xpos;
-	double ypos;
-	glfwGetCursorPos(pWindow, &xpos, &ypos);
-
-	if (xpos < 0)
-	{
-		xpos = xpos / 11;
-	}
-	else if (xpos > 0)
-	{
-		xpos = xpos / (width - 11);
-	}
-
-	if (ypos < 0)
-	{
-		ypos = (ypos / 11);
-	}
-	if (ypos > 0)
-	{
-		ypos = (ypos / (height - 11));
-	}
-
-	xCursor = (xpos - 0.5) * 2;
-	yCursor = -(ypos - 0.5) * 2;
-}
-
-
-void createPiece(GLFWwindow* pWindow, vector <Piece>& pPieceArray, string pPieceType)//, bool& pProcessMove) 
-{
-	//PieceType peut etre Processus, In, Out, Error, Tube
-
-	Piece newProcessus = Piece(Type::Processus);
-	Piece newIn = Piece(Type::In);
-	Piece newOut = Piece(Type::Out);
-	Piece newError = Piece(Type::Error);
-	Piece newTube = Piece(Type::Tube);
-
-	static int oldState = GLFW_RELEASE;//0
-	int newState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);// 1 if pressed
-	if (newState == GLFW_RELEASE && oldState == GLFW_PRESS)
-	{
-		if (pPieceType.compare("Processus") == 0)
+		Processus* p = dynamic_cast<Processus*>(pPiece.get());
+		if (typeid(*pPuzzle) == typeid(In))
 		{
-			pPieceArray.insert(pPieceArray.end(), newProcessus);
-		}
-		else if (pPieceType.compare("In") == 0)
-		{
-			pPieceArray.insert(pPieceArray.end(), newIn);
-		}
-		else if (pPieceType.compare("Out") == 0)
-		{
-			pPieceArray.insert(pPieceArray.end(), newOut);
-		}
-		else if (pPieceType.compare("Error") == 0)
-		{
-			pPieceArray.insert(pPieceArray.end(), newError);
-		}
-		else if (pPieceType.compare("Tube") == 0)
-		{
-			pPieceArray.insert(pPieceArray.end(), newTube);
-		}
-	}
-	oldState = newState;
-}
-
-void updatePiecePosition(GLFWwindow* window, const double& xCursor, const double& yCursor, vector <Piece>& pPieceArray)
-{
-	for (int i = 0; i < pPieceArray.size(); i++)
-	{
-		if (pPieceArray[i].isPointInsideForm(xCursor, yCursor))
-		{
-			mouvForm(pPieceArray[i], xCursor, yCursor);
-			return; // Permet de selectionner une seule piece
-		}
-	}
-}
-
-void supressPiece(GLFWwindow* window, const double& xCursor, const double& yCursor, vector <Piece>& pPieceArray)
-{
-	for (int i = 0; i < pPieceArray.size(); i++)
-	{
-		if (pPieceArray[i].isPointInsideForm(xCursor, yCursor))
-		{
-			pPieceArray.erase(pPieceArray.begin() + i);
-		}
-	}
-}
-
-void drawPiece(vector <Piece> pPieceArray)
-{
-	for (int i = 0; i < pPieceArray.size(); i++)
-	{
-		drawTriangle(pPieceArray[i].pointXY, pPieceArray[i].contourXY);
-	}
-}
-
-void cd(const string& pCommand, string& pPath) {
-    string vStartPath = pPath;
-    int vEnd = pCommand.size();
-    int StartWord = 0;
-    char c[100];
-    for (int i = 0; i < pCommand.size(); i++) {
-        if (pCommand[i] == '/' || i+1 == pCommand.size() || pCommand[i] == ' ') {
-            string vCommand = pCommand.substr(StartWord, i + 1 - StartWord);
-            if (pPath == "."&& vCommand.substr(0,2) == "..") {
-                StartWord = i + 1;
-                return;
-            }
-            int Error = chdir(vCommand.c_str());
-            if (Error == -1) {
-                chdir(getcwd(c, 100));
-                pPath = vStartPath;
-                return;
-            }
-            StartWord = i+1;
-            string vPath = getcwd(c, 100);
-            int vPush = vPath.rfind("PUSH");
-            pPath = "." + vPath.substr(vPush + 16, vPath.size() - vPush);
-        }
-        if (pCommand[i] == ' ') return;
-    }
-}
-
-//my_popen allow us to get the output of a command(string) in a vector of string
-//Only right commands will give a result
-//Other will give an empty line
-
-void my_popen(const string& pCommand, vector<string>& pOutput, string& pPath) {
-    FILE* vFile;
-    const int vSizeBuf = 1234;
-    char vBuff[vSizeBuf];
-    pOutput = vector<string>();
-    char c[100];
-    string vPath = "cd " + string(getcwd(c,100)) + " && " + pCommand;
-    if ((vFile = popen(vPath.c_str(), "r")) == NULL)
-    {
-        cout << "error, File NULL" << endl;
-    }
-
-    string vCurrent_string = "";
-
-    while (fgets(vBuff, sizeof(vBuff), vFile))
-    {
-        vCurrent_string += vBuff;
-    }
-
-    pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
-    if (pCommand.substr(0, 2) == "cd") {
-        cd(pCommand.substr(3, pCommand.size() - 3), pPath);
-    }
-    pclose(vFile);
-}//Code from stackoverflow
-
-void init(string& pPath) {
-    vector<string> vOutput;
-    const auto vWorkingDir = fs::current_path();
-    if(!fs::is_directory(vWorkingDir / "Environment"))
-        my_popen("mkdir Environment", vOutput, pPath);
-    my_popen("cd Environment", vOutput, pPath);
-}
-
-
-int main(int argc, char* argv[])
-{
-    //LOL
-	cout << "Hello CMake." << endl;
-    string path = ".";
-    init(path);
-    //cout << current_path.back() << "\n";
-    //We have a command
-    string vCommand = "cd test/test2";
-    //We save the result of the command in output
-    vector<string> vOutput;
-    my_popen(vCommand, vOutput, path);
-    //We check if the output has the good values
-    for (vector<string>::iterator vIterator = vOutput.begin(); vIterator != vOutput.end(); ++vIterator)
-    {
-       cout << *vIterator << endl;
-    }//It has
-    vCommand = "cd ../../test";
-    my_popen(vCommand, vOutput, path);
-    char c[100];
-
-    //GLFWwindow* window;
-    //bool processusMove = false;
-
-    //taille de la fenetre
-    int windowWidth = 1900;
-    int windowHeight = 1060;
-
-    //intialisation de la position du curseur, 
-    double xCursor = 0;
-    double yCursor = 0;
-
-    // Initialisation de GLFW
-    if (!glfwInit()) {
-        return -1;
-    }
-
-    // Creation de la fen�tre
-	window = glfwCreateWindow(windowWidth, windowHeight, "Triangle OpenGL", NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
-		return -1;
-	}
-
-	// Initialisation de GLUT
-	glutInit(&argc, argv);
-
-	// Configuration de GLFW
-	glfwMakeContextCurrent(window);
-
-	// Colorisation
-	//glClearColor(0.682f, 0.639f, 0.702f, 0.0f);
-	glClearColor(0.478f, 0.239f, 0.561f, 0.0f);
-
-	// Vector contenant les pi�ces
-	vector <Piece> pieceArray;
-
-	// Les Boutons
-	Bouton B_Processus = Bouton(-0.7f, 0.92f, 0.15f, 0.1f, "Processus");
-	Bouton B_In = Bouton(-0.4f, 0.92f, 0.15f, 0.1f, "In");
-	Bouton B_Out = Bouton(-0.1f, 0.92f, 0.15f, 0.1f, "Out");
-	Bouton B_Error = Bouton(0.2f, 0.92f, 0.15f, 0.1f, "Error");
-	Bouton B_Tube = Bouton(0.5f, 0.92f, 0.15f, 0.1f, "Tube");
-	vector<Bouton> boutonArray = { B_Processus, B_In, B_Out, B_Error, B_Tube };
-
-	// Les Zones
-
-	// La zone 2 a ete supprim�e ! 
-	Zone Z_Zone3 = Zone(-0.25f, -0.6779f, 1.4999f, 0.3599f, 3); // Zone bas
-	Zone Z_Zone4 = Zone(-0.25f, 0.25f, 1.499f, 1.499f, 4); // Zone centrale
-	Zone Z_Zone5 = Zone(0.74999f, 0.5f, 0.5f, 0.9999f, 5); // Zone haut gauche
-	Zone Z_Zone6 = Zone(0.74999f, -0.433f, 0.5f, 0.9f, 6); // Zone bas gauche
-	Zone Z_Zone1Prime = Zone(0.0f, 0.92f, 1.997f, 0.158f, 1); // Zone haut
-
-	vector<Zone> zoneArray =
-	{
-		Z_Zone3,
-		Z_Zone4,
-		Z_Zone5,
-		Z_Zone6,
-		Z_Zone1Prime,
-	};
-	/*
-	Bouton B_Processus = Bouton(-0.75f, 0.73f, 0.15f, 0.1f, "Processus");
-	Bouton B_In = Bouton(-0.75f, 0.4f, 0.15f, 0.1f, "In");
-	Bouton B_Out = Bouton(-0.75f, 0.07f, 0.15f, 0.1f, "Out");
-	Bouton B_Error = Bouton(-0.75f, -0.26f, 0.15f, 0.1f, "Error");
-	Bouton B_Tube = Bouton(-0.75f, -0.59f, 0.15f, 0.1f, "Tube");
-	vector<Bouton> boutonArray = { B_Processus, B_In, B_Out, B_Error, B_Tube };
-
-	// Les Zones
-	//Zone Z_Zone1 = Zone(-0.74999f, 0.5f, 0.5f, 0.9999f, 1); // Zone haut gauche
-	Zone Z_Zone1 = Zone(-0.74999f, 0.0692f, 0.5f, 1.855f, 1); // Zone gauche
-	//Zone Z_Zone2 = Zone(-0.74999f, -0.433f, 0.5f, 0.85f, 2); // Zone bas gauche
-	Zone Z_Zone3 = Zone(0.0f, -0.6779f, 0.999f, 0.3599f, 3); // Zone centrale
-	Zone Z_Zone4 = Zone(0.0f, 0.25f, 0.999f, 1.499f, 4); // Zone bas centre
-	Zone Z_Zone5 = Zone(0.74999f, 0.5f, 0.5f, 0.9999f, 5); // Zone haut gauche
-	Zone Z_Zone6 = Zone(0.74999f, -0.433f, 0.5f, 0.85f, 6); // Zone bas gauche
-
-	vector<Zone> zoneArray =
-	{
-		Z_Zone1,
-		//Z_Zone2,
-		Z_Zone3,
-		Z_Zone4,
-		Z_Zone5,
-		Z_Zone6
-	};
-	*/
-
-
-	// Boucle principale
-	while ((glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0))
-	{
-		//met a jour la valeur de la position du curseur
-		PositionCursor(window, xCursor, yCursor, windowWidth, windowHeight);
-
-		// Effacer le contenu de la fen�tre
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Les zones
-		for (int i = 0; i < zoneArray.size(); i++)
-		{
-			drawZone(zoneArray[i].contourXY, zoneArray[i].type);
-		}
-
-		// Les boutons
-		for (int i = 0; i < boutonArray.size(); i++)
-		{
-			drawBouton(boutonArray[i].contourXY);
-
-			if (boutonArray[i].EstDansLeBouton(xCursor, yCursor))
+			In* d = dynamic_cast<In*>(pPuzzle.get());
+			if (p->inProcessus == true && d->outIn == true)
 			{
-				createPiece(window, pieceArray, boutonArray[i].texte);
+				// On bloque les entrées
+				p->inProcessus = false;
+				d->outIn = false;
+
+
+				//+ p->texte;
+
+				// On change la pièce de vector
+				puzzleArray.insert(puzzleArray.end(), pPiece);
+				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+				// On déplace la pièce
+				p->x0 = d->x0 + 0.1;
+				p->y0 = d->y0;
 			}
 		}
-
-		// Mise a jour des pieces
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) //regarde si le bouton gauche est appuye 
+		else if (typeid(*pPuzzle) == typeid(Out))
 		{
-			updatePiecePosition(window, xCursor, yCursor, pieceArray);
+			Out* d = dynamic_cast<Out*>(pPuzzle.get());
+			if (p->outProcessus == true && d->inOut == true)
+			{
+				// On bloque les entrées
+				p->outProcessus = false;
+				d->inOut = false;
+
+				//CA NARRIVERAJAMAAIS
+
+				// On change la pièce de vector
+				puzzleArray.insert(puzzleArray.end(), pPiece);
+				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+				// On déplace la pièce
+				p->x0 = d->x0 - 0.1;
+				p->y0 = d->y0;
+			}
 		}
-		// Suppression des pieces
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) //regarde si le bouton droit est appuye
+		else if (typeid(*pPuzzle) == typeid(Error))
 		{
-			supressPiece(window, xCursor, yCursor, pieceArray);
+			Error* d = dynamic_cast<Error*>(pPuzzle.get());
+			if (p->errorProcessus == true && d->inError == true)
+			{
+				// On bloque les entrées
+				p->errorProcessus = false;
+				d->inError = false;
+
+				//CA N ARRIVERA JAMAIS
+
+				// On change la pièce de vector
+				puzzleArray.insert(puzzleArray.end(), pPiece);
+				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+				// On déplace la pièce
+				p->x0 = d->x0;
+				p->y0 = d->y0 + 0.1;
+			}
 		}
+		else if (typeid(*pPuzzle) == typeid(Tube))
+		{
+			Tube* d = dynamic_cast<Tube*>(pPuzzle.get());
+			if (p->inProcessus == true && d->outTube == true)
+			{
+				// On bloque les entrées
+				p->inProcessus = false;
+				d->outTube = false;
 
-		// Dessiner les pieces
-		drawPiece(pieceArray);
-
-		// Ecrit le texte sur les bouttons 
-		char* cProc = "Processus";
-		char* cIn = "In";
-		char* cOut = "Out";
-		char* cError = "Error";
-		char* cTube = "Tube";
-		output(-0.75f, 0.9f, 1, 1, 1, cProc);
-		output(-0.41f, 0.9f, 1, 1, 1, cIn);
-		output(-0.12f, 0.9f, 1, 1, 1, cOut);
-		output(0.175f, 0.9f, 1, 1, 1, cError);
-		output(0.475f, 0.9f, 1, 1, 1, cTube);
+				// On ajoute au mot total une pipe
+				//pTotalWord += p->texte;;
 
 
-		// Echange des tampons d'affichage
-		glfwSwapBuffers(window);
+				// On change la pièce de vector
+				puzzleArray.insert(puzzleArray.end(), pPiece);
+				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
 
-		// Verification des �v�nements de la fen�tre
-		glfwPollEvents();
+				// On déplace la pièce
+				p->x0 = d->x0 + 0.1;
+				p->y0 = d->y0;
+			}
+		}
+	}
+	else if (typeid(*pPiece) == typeid(In) && typeid(*pPuzzle) == typeid(Processus))
+	{
+		In* p = dynamic_cast<In*>(pPiece.get());
+		Processus* d = dynamic_cast<Processus*>(pPuzzle.get());
+		if (p->outIn == true && d->inProcessus == true)
+		{
+			// On bloque les entrées
+			p->outIn = false;
+			d->inProcessus = false;
+
+			//Ca N ARRIVERA JAMAIS
+
+			// On change la pièce de vector
+			puzzleArray.insert(puzzleArray.end(), pPiece);
+			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+			// On déplace la pièce
+			p->x0 = d->x0 - 0.1;
+			p->y0 = d->y0;
+		}
+	}
+	else if (typeid(*pPiece) == typeid(Out) && typeid(*pPuzzle) == typeid(Processus))
+	{
+		Out* p = dynamic_cast<Out*>(pPiece.get());
+		Processus* d = dynamic_cast<Processus*>(pPuzzle.get());
+		if (p->inOut == true && d->outProcessus == true)
+		{
+			// On bloque les entrées
+			p->inOut = false;
+			d->outProcessus = false;
+
+			string txt = p->text;
+			p->text = " RedirectionVersSortie" + txt;
+
+			// On change la pièce de vector
+			puzzleArray.insert(puzzleArray.end(), pPiece);
+			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+			// On déplace la pièce
+			p->x0 = d->x0 + 0.1;
+			p->y0 = d->y0;
+		}
+	}
+	else if (typeid(*pPiece) == typeid(Error) && typeid(*pPuzzle) == typeid(Processus))
+	{
+		Error* p = dynamic_cast<Error*>(pPiece.get());
+		Processus* d = dynamic_cast<Processus*>(pPuzzle.get());
+		if (p->inError == true && d->errorProcessus == true)
+		{
+			// On bloque les entrées
+			p->inError = false;
+			d->errorProcessus = false;
+
+			// On obtient la position de pPiece
+			vector<shared_ptr<Piece>>::iterator vPosition;
+			vPosition = find(puzzleArray.begin(), puzzleArray.end(), pPuzzle);
+			// On ajoute l'erreur apres le processus dans la liste du puzzle
+			puzzleArray.insert(vPosition + 1, pPiece);
+
+			// On supprime l'erreur de la liser de piece
+			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+			string txt = p->text;
+			p->text = " RedirectionVersSortieErreur" + txt;
+			/*
+			if (d->outProcessus)
+			{
+				pTotalWord += "RedirectionVersSortieErreur" + p->texte;
+			}
+			else
+			{
+				string vNewCommandLine;
+				for (int vCharacterCommand = 0; vCharacterCommand < (int)size(pTotalWord) - (int)size(d->texte); vCharacterCommand++)
+				{
+					string vSearchedWord = "";
+					for (int i = 0; i < (int)size(d->texte); i++)
+					{
+						vSearchedWord += pTotalWord[i];
+					}
+					if (vSearchedWord.compare(d->texte) == 0)
+					{
+						for (int i = 0; i < vCharacterCommand; i++)
+						{
+							vNewCommandLine[i] = pTotalWord[i];
+						}
+
+						vNewCommandLine += "RedirectionVersSortieErreur" + p->texte;
+
+						for (int i = vCharacterCommand; i < (int)size(pTotalWord); i++)
+						{
+							vNewCommandLine[i + (int)size(d->texte) + 28] = pTotalWord[i]; // 28 = RedirectionVersSortieErreur.size()
+						}
+
+						pTotalWord = vNewCommandLine;
+					}
+				}
+				//ensuite, executer la commande
+			}
+
+			// On change la pièce de vector
+			pPuzzleArray.insert(pPuzzleArray.end(), pPiece);
+			pPieceArray.erase(remove(pPieceArray.begin(), pPieceArray.end(), pPiece), pPieceArray.end());
+			*/
+
+			// On déplace la pièce
+			p->x0 = d->x0;
+			p->y0 = d->y0 - 0.1;
+		}
+	}
+	else if (typeid(*pPiece) == typeid(Tube) && typeid(*pPuzzle) == typeid(Processus))
+	{
+		Tube* p = dynamic_cast<Tube*>(pPiece.get());
+		Processus* d = dynamic_cast<Processus*>(pPuzzle.get());
+		if (p->inTube == true && d->outProcessus == true)
+		{
+			// On bloque les entrées
+			p->inTube = false;
+			d->outProcessus = false;
+
+			//string txt = p->texte;
+
+			// On change la pièce de vector
+			puzzleArray.insert(puzzleArray.end(), pPiece);
+			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
+
+			// On déplace la pièce
+			p->x0 = d->x0 + 0.1;
+			p->y0 = d->y0;
+		}
+	}
+}
+
+void collisionRectRect()
+{
+	for (int i = 0; i < pieceArray.size(); i++)
+	{
+		for (int j = 0; j < puzzleArray.size(); j++)
+		{
+			// Vérification que les 2 rectangles se touchent
+			if (pieceArray[i]->x0 - 0.05 < puzzleArray[j]->x0 + 0.05 && pieceArray[i]->x0 + 0.05 > puzzleArray[j]->x0 - 0.05 &&
+				pieceArray[i]->y0 - 0.05 < puzzleArray[j]->y0 + 0.05 && pieceArray[i]->y0 + 0.05 > puzzleArray[j]->y0 - 0.05)
+			{
+				avengersPuzzle(pieceArray[i], puzzleArray[j]);
+				return; // Permet de ne pas sortir du vector
+			}
+		}
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//	
+// 
+//      Main loop's fonctions
+
+void glutDisplay()// WHat the screen displays
+{
+	// reset buffer's content
+	glClear(GL_COLOR_BUFFER_BIT);
+	// background and environment content
+
+
+
+	//  Zones
+	for (Zone CurrentZone : ZonesArray)
+	{
+		drawShape(CurrentZone.aCornersList, 1, 1, 1, GL_POLYGON);// Drawing interior
+		drawShape(CurrentZone.aCornersList, 0, 0, 0, GL_LINE_LOOP);// Drawing exterior
 	}
 
-	// Terminaison de GLFW
-	glfwTerminate();
+	// Draw Buttons
+	for (Button CurrentButton : ButtonsArray)
+	{
+		drawShape(CurrentButton.aCornersList, 0.5, 0.25, 0.5, GL_POLYGON);// Drawing interior
+		drawShape(CurrentButton.aCornersList, 0, 0, 0, GL_LINE_LOOP);// Drawing exterior
+		drawWriting(CurrentButton.aPosX + 0.03, CurrentButton.aPosY + 0.03, 1, 1, 1, CurrentButton.aText);
+	}
+
+	// Draw Pieces
+	for (int i = 0; i < pieceArray.size(); i++)
+	{
+		pieceArray[i]->createPoint();
+		drawTriangles(pieceArray[i]->pointXY);
+		drawShape(pieceArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
+	}
+
+	for (int i = 0; i < puzzleArray.size(); i++)
+	{
+		puzzleArray[i]->createPoint();
+		drawTriangles(puzzleArray[i]->pointXY);
+		drawShape(puzzleArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
+	}
+	writingCommand();
+	drawWriting(-0.9, -0.9, 0, 0, 0, CommandSentence);
+
+	// swap current screen and buffer
+	glutSwapBuffers();
+}
+
+void glutMotion(int x, int y)
+{
+	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
+	float vY = -((2 * (float)y / glutGet(GLUT_SCREEN_HEIGHT)) - 1);
+
+	for (int i = 0; i < pieceArray.size(); i++)
+	{
+		if (pieceArray[i]->isPointInsideForm(vX, vY))
+		{
+			movePiece(pieceArray[i], vX, vY);
+			collisionRectRect();
+			glutPostRedisplay();
+			return;
+		}
+	}
+}
+
+void glutMouse(int button, int state, int x, int y)
+{
+	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
+	float vY = -((2 * (float)y / glutGet(GLUT_SCREEN_HEIGHT)) - 1);
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		for (Button CurrentButton : ButtonsArray)
+		{
+			if (CurrentButton.buttonPressed(vX, vY)) { useButton(CurrentButton.aText); return; }
+		}
+	}
+
+	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	{
+		for (int i = 0; i < pieceArray.size(); i++)
+		{
+			if (pieceArray[i]->isPointInsideForm(vX, vY)) { suppressPiece(i); return; }
+		}
+	}
+	glutPostRedisplay();
+}
+
+void glutKeyboard(unsigned char key, int x, int y)// Callbacks of the keyboard
+{
+	if (key == 'f') { glutLeaveMainLoop(); }
+}
+
+void glutIdle()
+{
+
+}
+int main(int argc, char** argv)
+{
+	// Variables' initialization
+	// Environment's zones
+	Zone ZoneCommandCompleted = Zone(-0.95, -0.95, 1.43, 0.18);
+	Zone ZonePiecesCreation = Zone(-0.95, 0.77, 1.9, 0.18);
+	Zone ZonePuzzle = Zone(-0.95, -0.72, 1.43, 1.44);
+	Zone ZoneOutputDisplay = Zone(0.53, -0.09, 0.42, 0.81);
+	Zone ZoneErrorDisplay = Zone(0.53, -0.95, 0.42, 0.81);
+
+	ZonesArray[0] = ZoneCommandCompleted;
+	ZonesArray[1] = ZonePiecesCreation;
+	ZonesArray[2] = ZonePuzzle;
+	ZonesArray[3] = ZoneOutputDisplay;
+	ZonesArray[4] = ZoneErrorDisplay;
+
+	// Environment's buttons
+	Button ButtonProcessus = Button(-0.90, 0.81, "Processus");
+	Button ButtonIn = Button(-0.58, 0.81, "In");
+	Button ButtonOut = Button(-0.26, 0.81, "Out");
+	Button ButtonError = Button(0.06, 0.81, "Error");
+	Button ButtonTube = Button(0.38, 0.81, "Tube");
+	Button ButtonDelete = Button(0.7, 0.81, "Delete");
+
+	Button ButtonExecute = Button(0.23, -0.91, "Execute");
+
+	ButtonsArray[0] = ButtonProcessus;
+	ButtonsArray[1] = ButtonIn;
+	ButtonsArray[2] = ButtonOut;
+	ButtonsArray[3] = ButtonError;
+	ButtonsArray[4] = ButtonTube;
+	ButtonsArray[5] = ButtonDelete;
+	ButtonsArray[6] = ButtonExecute;
+
+	// Initialisation de la premiere piece
+	shared_ptr<In> inStart = make_shared<In>();
+	inStart->x0 = -0.8;
+	inStart->y0 = 0.5;
+	puzzleArray.insert(puzzleArray.end(), inStart);
+
+	// Main loop
+
+	glutInit(&argc, argv);
+
+	glutInitWindowSize(1920, 1080);
+	glutCreateWindow("OuaisOuaisOuais");
+	glutSetWindow(1);
+	glutFullScreen();
+	glClearColor(0.5, 0.25, 0.5, 0);
+	glutKeyboardFunc(glutKeyboard);
+	glutMouseFunc(glutMouse);
+	glutMotionFunc(glutMotion);
+	glutDisplayFunc(glutDisplay);
+
+	glutMainLoop();
+
 	return 0;
 }

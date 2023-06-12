@@ -3,32 +3,26 @@
 #
 
 # Ajoutez une source à l'exécutable de ce projet.
-add_executable (PUSH "PUSH.cpp" "PUSH.hpp" "shader.cpp" "structure.cpp")
+add_executable (PUSH "PUSH.cpp" "PUSH.hpp" "structure.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET PUSH PROPERTY CXX_STANDARD 20)
 endif()
 
-add_subdirectory(external/glfw)
 add_subdirectory(external/glew)
-add_subdirectory(external/glm)
 add_subdirectory(external/glut)
 add_subdirectory(external/glui)
 
 # Incluez les sous-projets.
 
-target_include_directories(PUSH PUBLIC external/glfw/include 
-										external/glew/include
+target_include_directories(PUSH PUBLIC external/glew/include
 										external/glut/include
 										external/glui/include)
 
-target_link_directories(PUSH PRIVATE external/glfw/src 
-									external/glew/src
-									external/glut/src
-									external/glui/src)
+target_link_directories(PUSH PRIVATE external/glew/src
+									  external/glut/src
+									  external/glui/src)
 
-target_link_libraries(PUSH glfw 
-						libglew_static
-						glm
-						freeglut
-						glui)
+target_link_libraries(PUSH libglew_static
+						   freeglut
+						   glui)
