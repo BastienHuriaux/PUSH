@@ -472,11 +472,6 @@ void glutMotion(int x, int y)
 	}
 }
 
-void hidecaca(int test)
-{
-	glui->hide();
-}
-
 void control(int id)
 {
 	puzzleArray[id]->text = EditText->get_text();
