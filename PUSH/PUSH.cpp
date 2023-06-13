@@ -14,6 +14,11 @@ vector <shared_ptr<Piece>> pieceArray;
 vector <shared_ptr<Piece>> puzzleArray;
 bool LeftClickState = false;
 string CommandSentence = "";
+int main_window;
+GLUI* glui;
+bool djlazdjalkzjd = false;
+GLUI_EditText* EditText;
+GLUI_Panel* pPanel;
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
@@ -360,7 +365,7 @@ void collisionRectRect()
 	}
 }
 
-void my_popen(const string& pCommand, vector<string>& pOutput) {
+/*void my_popen(const string& pCommand, vector<string>& pOutput) {
 	FILE* vFile;
 	const int vSizeBuf = 1234;
 	char vBuff[vSizeBuf];
@@ -382,7 +387,7 @@ void my_popen(const string& pCommand, vector<string>& pOutput) {
 	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
 	//}
 	pclose(vFile);
-}//Code from stackoverflow
+}//Code from stackoverflow*/
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -451,6 +456,19 @@ void glutMotion(int x, int y)
 	}
 }
 
+void hidecaca(int test)
+{
+	glui->hide();
+}
+
+void control(int id)
+{
+	puzzleArray[id]->text = EditText->get_text();
+	glui->close();
+	glutPostRedisplay();
+	cout << puzzleArray[id]->text << endl;
+}
+
 void glutMouse(int button, int state, int x, int y)
 {
 	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
@@ -461,8 +479,20 @@ void glutMouse(int button, int state, int x, int y)
 		{
 			if (CurrentButton.buttonPressed(vX, vY)) { useButton(CurrentButton.aText); return; }
 		}
-	}
+		cout << puzzleArray[0]->isPointInsideForm(vX, vY) << endl;
 
+		for (int i = 0; i < puzzleArray.size(); i++) {
+			if (puzzleArray[i]->isPointInsideForm(vX, vY) && button == GLUT_LEFT_BUTTON
+				&& state == GLUT_DOWN)
+			{
+				glui = GLUI_Master.create_glui("GLUI");
+				new GLUI_StaticText(glui, "Bite");
+				EditText = new GLUI_EditText(glui, "Entrez une commande : ");
+				new GLUI_Button(glui, "Valider", i, control);
+				glui->set_main_gfx_window(main_window);
+			}
+		}
+	}
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
 		for (int i = 0; i < pieceArray.size(); i++)
@@ -473,15 +503,27 @@ void glutMouse(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
-void glutKeyboard(unsigned char key, int x, int y)// Callbacks of the keyboard
-{
-	if (key == 'f') { glutLeaveMainLoop(); }
-}
-
 void glutIdle()
 {
+	if (glutGetWindow() != main_window)
+		glutSetWindow(main_window);
 
+	glutPostRedisplay();
+
+	//if (djlazdjalkzjd) glui->sync_live();
 }
+
+void glutKeyboard(unsigned char key, int x, int y)// Callbacks of the keyboard
+{
+	if (key == 'f') {
+		djlazdjalkzjd = true;
+		new GLUI_StaticText(pPanel, "Entrez une commande : ");
+		EditText = new GLUI_EditText(pPanel, "");
+		EditText->set_w(410);
+		glui->show();
+	}
+}
+
 int main(int argc, char** argv)
 {
 	// Variables' initialization
@@ -523,18 +565,18 @@ int main(int argc, char** argv)
 	puzzleArray.insert(puzzleArray.end(), inStart);
 
 	// Main loop
-
 	glutInit(&argc, argv);
-
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(1920, 1080);
-	glutCreateWindow("OuaisOuaisOuais");
-	glutSetWindow(1);
-	glutFullScreen();
+	main_window = glutCreateWindow("PUSH");
+	//glutFullScreen();
 	glClearColor(0.5, 0.25, 0.5, 0);
 	glutKeyboardFunc(glutKeyboard);
 	glutMouseFunc(glutMouse);
 	glutMotionFunc(glutMotion);
 	glutDisplayFunc(glutDisplay);
+
+
 
 	glutMainLoop();
 
