@@ -14,11 +14,42 @@ vector <shared_ptr<Piece>> pieceArray;
 vector <shared_ptr<Piece>> puzzleArray;
 bool LeftClickState = false;
 string CommandSentence = "";
+vector<string> CommandOutput = vector<string>();
+bool CommandExecuted = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
 // 
 //      Fonctions
+
+
+void my_popen(const string& pCommand, vector<string>& pOutput) 
+{
+	FILE* vFile;
+	const int vSizeBuf = 1234;
+	char vBuff[vSizeBuf];
+	pOutput = vector<string>();
+	if ((vFile = popen(pCommand.c_str(), "r")) == NULL)
+	{
+		cout << "error, File NULL" << endl;
+	}
+
+	string vCurrent_string = "";
+
+	while (fgets(vBuff, sizeof(vBuff), vFile))
+	{
+		vCurrent_string += vBuff;
+	}
+
+	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
+	//if (pCommand.substr(0, 2) == "cd") {
+	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
+	//}
+	pclose(vFile);
+}//Code from stackoverflow
+
+
+
 
 void drawShape(vector<vector<float>> pCoords, float pRed, float pGreen, float pBlue, int pDrawingType)
 {
@@ -41,15 +72,67 @@ void drawTriangles(vector<vector<float>> pCoords)
 	}
 }
 
-void drawWriting(float x, float y, float r, float g, float b, string string)
+void drawWriting(float x, float y, float r, float g, float b, string string, void* pTypeOfPolice)
 {
+	// pTypeOfPolice can be GLUT_BITMAP_HELVETICA_12 or GLUT_BITMAP_TIMES_ROMAN_24
 	glColor3f(r, g, b);
 	glRasterPos2f(x, y);
 	int len, i;
 	len = (int)size(string);
-	for (i = 0; i < len; i++) {
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
+	for (i = 0; i < len; i++) 
+	{
+		glutBitmapCharacter(pTypeOfPolice, string[i]);
 	}
+}
+
+
+void drawCommandOutput() 
+{
+	// definition of the Y axis in which the line will be displayed
+	// increases at each iteration
+	float vLine = 0.65;
+
+	int vFirstChar = 0; // First char of the command to be displayed 
+	int vLastChar = 0; // Last char of the command to be displayed
+
+	string vOutputToDisplay = ""; // Part of the command that will be displayed
+
+	if (CommandExecuted)
+	{
+		string CommandOutput_Str = CommandOutput[0];// Now we have a string
+
+		// Verfification of string length
+		if (CommandOutput_Str.size() == NULL)
+		{
+			return;
+		}
+
+		// We will display the command from the fisrt char to '\n',
+		// Then from one '\n' to the other
+		for (int i = 0; i < CommandOutput_Str.size() - 1; i++)
+		{
+			if (CommandOutput_Str[i] == '\n') 
+			{				
+				vLastChar = i;
+				vOutputToDisplay = "";
+				for (int j = vFirstChar; j < vLastChar; j++)
+				{
+					vOutputToDisplay += CommandOutput_Str[j];
+					drawWriting(0.54, vLine, 0, 0, 1, vOutputToDisplay, GLUT_BITMAP_HELVETICA_12);
+				}
+				vLine -= 0.05;
+				vFirstChar = i + 1;				
+			}
+		}
+		// Finally we display from the last '\n' to the end of the string
+		vOutputToDisplay = "";
+		for (int i = vFirstChar; i < CommandOutput_Str.size(); i++)
+		{
+			vOutputToDisplay += CommandOutput_Str[i];
+		}
+		drawWriting(0.54, vLine, 0, 0, 1, vOutputToDisplay, GLUT_BITMAP_HELVETICA_12);
+	}
+	CommandExecuted = false;
 }
 
 void useButton(string pButtonText)
@@ -83,8 +166,9 @@ void useButton(string pButtonText)
 	}
 	else if (pButtonText.compare("Delete") == 0)  
 	{
-		// Suppress all pieces in the puzzle and create a new input to
+		// Suppress all pieces in the puzzle and create a new input to begin the puzzle
 		puzzleArray.clear();
+		CommandOutput.clear();
 		shared_ptr<In> inStart = make_shared<In>();
 		inStart->x0 = -0.8;
 		inStart->y0 = 0.5;
@@ -92,7 +176,8 @@ void useButton(string pButtonText)
 	}
 	else if (pButtonText.compare("Execute") == 0)
 	{
-		glutLeaveMainLoop();
+		my_popen(CommandSentence, CommandOutput); 
+		CommandExecuted = true;
 	}
 }
 
@@ -120,6 +205,8 @@ void writingCommand()
 		CommandSentence += puzzleArray[i]->text;
 	}
 }
+
+
 
 void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 {
@@ -308,30 +395,6 @@ void collisionRectRect()
 	}
 }
 
-void my_popen(const string& pCommand, vector<string>& pOutput) {
-	FILE* vFile;
-	const int vSizeBuf = 1234;
-	char vBuff[vSizeBuf];
-	pOutput = vector<string>();
-	if ((vFile = popen(pCommand.c_str(), "r")) == NULL)
-	{
-		cout << "error, File NULL" << endl;
-	}
-
-	string vCurrent_string = "";
-
-	while (fgets(vBuff, sizeof(vBuff), vFile))
-	{
-		vCurrent_string += vBuff;
-	}
-
-	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
-	//if (pCommand.substr(0, 2) == "cd") {
-	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
-	//}
-	pclose(vFile);
-}//Code from stackoverflow
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
@@ -355,7 +418,7 @@ void glutDisplay()// WHat the screen displays
 	{
 		drawShape(CurrentButton.aCornersList, 0.5, 0.25, 0.5, GL_POLYGON);// Drawing interior
 		drawShape(CurrentButton.aCornersList, 0, 0, 0, GL_LINE_LOOP);// Drawing exterior
-		drawWriting(CurrentButton.aPosX + 0.03, CurrentButton.aPosY + 0.03, 1, 1, 1, CurrentButton.aText);
+		drawWriting(CurrentButton.aPosX + 0.03, CurrentButton.aPosY + 0.03, 1, 1, 1, CurrentButton.aText, GLUT_BITMAP_TIMES_ROMAN_24);
 	}
 
 	// Draw Pieces
@@ -373,10 +436,13 @@ void glutDisplay()// WHat the screen displays
 		drawTriangles(puzzleArray[i]->pointXY);
 		drawShape(puzzleArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
 	}
+
 	// Write the command
 	writingCommand();
-	drawWriting(-0.9, -0.9, 0, 0, 0, CommandSentence);
+	drawWriting(-0.9, -0.88, 0, 0, 1, CommandSentence, GLUT_BITMAP_TIMES_ROMAN_24);
 
+	drawCommandOutput();
+	
 	// swap current screen and buffer
 	glutSwapBuffers();
 }
@@ -482,7 +548,8 @@ int main(int argc, char** argv)
 	glutMouseFunc(glutMouse);
 	glutMotionFunc(glutMotion);
 	glutDisplayFunc(glutDisplay);
-
+	
+	
 	glutMainLoop();
 
 	return 0;
