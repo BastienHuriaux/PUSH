@@ -81,10 +81,10 @@ struct Piece
 {
 
 	// Données pour la Pièce
-	float x0 = 0.0;
+	float x0 = -0.7;
 	float x1, x2, x3, x4, x5;
 
-	float y0 = 0.0;
+	float y0 = 0.25;
 	float y1, y2, y3, y4, y5;
 
 	vector <vector<float>> pointXY;
@@ -125,12 +125,7 @@ struct Processus : public Piece
 {
 	bool inProcessus = true, outProcessus = true, errorProcessus = true;
 
-	Processus() 
-	{ 
-		createPoint();
-		text = "ls -l";
-
-	}
+	Processus() { createPoint(); }
 
 	void createPoint() override {
 		x1 = x0 - 0.05;

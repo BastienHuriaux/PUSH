@@ -181,6 +181,11 @@ void useButton(string pButtonText)
 	{
 		my_popen(CommandSentence, CommandOutput); 
 		CommandExecuted = true;
+		for (int i = 0; i < puzzleArray.size(); i++)
+		{
+			CommandSentence = "";
+			puzzleArray[i]->text = "";
+		}
 	}
 }
 
@@ -205,7 +210,7 @@ void writingCommand()
 	CommandSentence = "";
 	for (int i = 0; i < puzzleArray.size(); i++)
 	{
-		CommandSentence += puzzleArray[i]->text;
+		CommandSentence += puzzleArray[i]->text + " ";
 	}
 }
 
@@ -477,7 +482,6 @@ void control(int id)
 	puzzleArray[id]->text = EditText->get_text();
 	glui->close();
 	glutPostRedisplay();
-	cout << puzzleArray[id]->text << endl;
 }
 
 void glutMouse(int button, int state, int x, int y)
@@ -497,8 +501,9 @@ void glutMouse(int button, int state, int x, int y)
 				&& state == GLUT_DOWN)
 			{
 				glui = GLUI_Master.create_glui("GLUI");
-				new GLUI_StaticText(glui, "Bite");
-				EditText = new GLUI_EditText(glui, "Entrez une commande : ");
+				new GLUI_StaticText(glui, "Entrez une commande : ");
+				EditText = new GLUI_EditText(glui, "");
+				EditText->set_w(410);
 				new GLUI_Button(glui, "Valider", i, control);
 				glui->set_main_gfx_window(main_window);
 			}
