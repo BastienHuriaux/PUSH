@@ -60,6 +60,7 @@ void useButton(string pButtonText)
 	shared_ptr<Error> newError = make_shared<Error>();
 	shared_ptr<Tube> newTube = make_shared<Tube>();
 
+	// Try which button is pressed and add a new piece accordingly
 	if (pButtonText.compare("Processus") == 0)
 	{
 		pieceArray.insert(pieceArray.end(), newProcessus);
@@ -80,8 +81,9 @@ void useButton(string pButtonText)
 	{
 		pieceArray.insert(pieceArray.end(), newTube);
 	}
-	else if (pButtonText.compare("Delete") == 0)
+	else if (pButtonText.compare("Delete") == 0)  
 	{
+		// Suppress all pieces in the puzzle and create a new input to
 		puzzleArray.clear();
 		shared_ptr<In> inStart = make_shared<In>();
 		inStart->x0 = -0.8;
@@ -96,8 +98,8 @@ void useButton(string pButtonText)
 
 void movePiece(shared_ptr<Piece>& pPiece, float pCursorX, float pCursorY)
 {
-	if (pCursorX > -0.90 && pCursorX < 0.50
-		&& pCursorY > -0.75 && pCursorY < 0.75)
+	if (pCursorX > -0.90 && pCursorX < 0.40
+		&& pCursorY > -0.65 && pCursorY < 0.65)
 	{
 		pPiece->x0 = pCursorX;
 		pPiece->y0 = pCursorY;
@@ -136,9 +138,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				p->inProcessus = false;
 				d->outIn = false;
 
-
-				//+ p->texte;
-
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
 				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
@@ -156,8 +155,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				// On bloque les entrées
 				p->outProcessus = false;
 				d->inOut = false;
-
-				//CA NARRIVERAJAMAAIS
 
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -177,8 +174,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				p->errorProcessus = false;
 				d->inError = false;
 
-				//CA N ARRIVERA JAMAIS
-
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
 				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
@@ -196,10 +191,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				// On bloque les entrées
 				p->inProcessus = false;
 				d->outTube = false;
-
-				// On ajoute au mot total une pipe
-				//pTotalWord += p->texte;;
-
 
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -221,8 +212,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			p->outIn = false;
 			d->inProcessus = false;
 
-			//Ca N ARRIVERA JAMAIS
-
 			// On change la pièce de vector
 			puzzleArray.insert(puzzleArray.end(), pPiece);
 			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
@@ -243,7 +232,7 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			d->outProcessus = false;
 
 			string txt = p->text;
-			p->text = " RedirectionVersSortie" + txt;
+			p->text = " 1> " + txt;
 
 			// On change la pièce de vector
 			puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -274,46 +263,7 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
 
 			string txt = p->text;
-			p->text = " RedirectionVersSortieErreur" + txt;
-			/*
-			if (d->outProcessus)
-			{
-				pTotalWord += "RedirectionVersSortieErreur" + p->texte;
-			}
-			else
-			{
-				string vNewCommandLine;
-				for (int vCharacterCommand = 0; vCharacterCommand < (int)size(pTotalWord) - (int)size(d->texte); vCharacterCommand++)
-				{
-					string vSearchedWord = "";
-					for (int i = 0; i < (int)size(d->texte); i++)
-					{
-						vSearchedWord += pTotalWord[i];
-					}
-					if (vSearchedWord.compare(d->texte) == 0)
-					{
-						for (int i = 0; i < vCharacterCommand; i++)
-						{
-							vNewCommandLine[i] = pTotalWord[i];
-						}
-
-						vNewCommandLine += "RedirectionVersSortieErreur" + p->texte;
-
-						for (int i = vCharacterCommand; i < (int)size(pTotalWord); i++)
-						{
-							vNewCommandLine[i + (int)size(d->texte) + 28] = pTotalWord[i]; // 28 = RedirectionVersSortieErreur.size()
-						}
-
-						pTotalWord = vNewCommandLine;
-					}
-				}
-				//ensuite, executer la commande
-			}
-
-			// On change la pièce de vector
-			pPuzzleArray.insert(pPuzzleArray.end(), pPiece);
-			pPieceArray.erase(remove(pPieceArray.begin(), pPieceArray.end(), pPiece), pPieceArray.end());
-			*/
+			p->text = " 2> " + txt;
 
 			// On déplace la pièce
 			p->x0 = d->x0;
@@ -329,8 +279,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			// On bloque les entrées
 			p->inTube = false;
 			d->outProcessus = false;
-
-			//string txt = p->texte;
 
 			// On change la pièce de vector
 			puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -370,9 +318,6 @@ void glutDisplay()// WHat the screen displays
 {
 	// reset buffer's content
 	glClear(GL_COLOR_BUFFER_BIT);
-	// background and environment content
-
-
 
 	//  Zones
 	for (Zone CurrentZone : ZonesArray)
@@ -397,14 +342,16 @@ void glutDisplay()// WHat the screen displays
 		drawShape(pieceArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
 	}
 
+	// Draw Puzzle
 	for (int i = 0; i < puzzleArray.size(); i++)
 	{
 		puzzleArray[i]->createPoint();
 		drawTriangles(puzzleArray[i]->pointXY);
 		drawShape(puzzleArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
 	}
+	// Write the command
 	writingCommand();
-	drawWriting(-0.9, -0.9, 0, 0, 0, CommandSentence);
+	drawWriting(-0.9, -0.88, 0, 0, 1, CommandSentence);
 
 	// swap current screen and buffer
 	glutSwapBuffers();
