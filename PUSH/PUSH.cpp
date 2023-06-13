@@ -14,16 +14,40 @@ vector <shared_ptr<Piece>> pieceArray;
 vector <shared_ptr<Piece>> puzzleArray;
 bool LeftClickState = false;
 string CommandSentence = "";
-int main_window;
-GLUI* glui;
-bool djlazdjalkzjd = false;
-GLUI_EditText* EditText;
-GLUI_Panel* pPanel;
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
 // 
 //      Fonctions
+
+
+void my_popen(const string& pCommand, vector<string>& pOutput) 
+{
+	FILE* vFile;
+	const int vSizeBuf = 1234;
+	char vBuff[vSizeBuf];
+	pOutput = vector<string>();
+	if ((vFile = popen(pCommand.c_str(), "r")) == NULL)
+	{
+		cout << "error, File NULL" << endl;
+	}
+
+	string vCurrent_string = "";
+
+	while (fgets(vBuff, sizeof(vBuff), vFile))
+	{
+		vCurrent_string += vBuff;
+	}
+
+	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
+	//if (pCommand.substr(0, 2) == "cd") {
+	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
+	//}
+	pclose(vFile);
+}//Code from stackoverflow
+
+
+
 
 void drawShape(vector<vector<float>> pCoords, float pRed, float pGreen, float pBlue, int pDrawingType)
 {
@@ -46,15 +70,67 @@ void drawTriangles(vector<vector<float>> pCoords)
 	}
 }
 
-void drawWriting(float x, float y, float r, float g, float b, string string)
+void drawWriting(float x, float y, float r, float g, float b, string string, void* pTypeOfPolice)
 {
+	// pTypeOfPolice can be GLUT_BITMAP_HELVETICA_12 or GLUT_BITMAP_TIMES_ROMAN_24
 	glColor3f(r, g, b);
 	glRasterPos2f(x, y);
 	int len, i;
 	len = (int)size(string);
-	for (i = 0; i < len; i++) {
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
+	for (i = 0; i < len; i++) 
+	{
+		glutBitmapCharacter(pTypeOfPolice, string[i]);
 	}
+}
+
+
+void drawCommandOutput() 
+{
+	// definition of the Y axis in which the line will be displayed
+	// increases at each iteration
+	float vLine = 0.65;
+
+	int vFirstChar = 0; // First char of the command to be displayed 
+	int vLastChar = 0; // Last char of the command to be displayed
+
+	string vOutputToDisplay = ""; // Part of the command that will be displayed
+
+	if (CommandExecuted)
+	{
+		string CommandOutput_Str = CommandOutput[0];// Now we have a string
+
+		// Verfification of string length
+		if (CommandOutput_Str.size() == NULL)
+		{
+			return;
+		}
+
+		// We will display the command from the fisrt char to '\n',
+		// Then from one '\n' to the other
+		for (int i = 0; i < CommandOutput_Str.size() - 1; i++)
+		{
+			if (CommandOutput_Str[i] == '\n') 
+			{				
+				vLastChar = i;
+				vOutputToDisplay = "";
+				for (int j = vFirstChar; j < vLastChar; j++)
+				{
+					vOutputToDisplay += CommandOutput_Str[j];
+					drawWriting(0.54, vLine, 0, 0, 1, vOutputToDisplay, GLUT_BITMAP_HELVETICA_12);
+				}
+				vLine -= 0.05;
+				vFirstChar = i + 1;				
+			}
+		}
+		// Finally we display from the last '\n' to the end of the string
+		vOutputToDisplay = "";
+		for (int i = vFirstChar; i < CommandOutput_Str.size(); i++)
+		{
+			vOutputToDisplay += CommandOutput_Str[i];
+		}
+		drawWriting(0.54, vLine, 0, 0, 1, vOutputToDisplay, GLUT_BITMAP_HELVETICA_12);
+	}
+	CommandExecuted = false;
 }
 
 void useButton(string pButtonText)
@@ -65,6 +141,7 @@ void useButton(string pButtonText)
 	shared_ptr<Error> newError = make_shared<Error>();
 	shared_ptr<Tube> newTube = make_shared<Tube>();
 
+	// Try which button is pressed and add a new piece accordingly
 	if (pButtonText.compare("Processus") == 0)
 	{
 		pieceArray.insert(pieceArray.end(), newProcessus);
@@ -85,9 +162,11 @@ void useButton(string pButtonText)
 	{
 		pieceArray.insert(pieceArray.end(), newTube);
 	}
-	else if (pButtonText.compare("Delete") == 0)
+	else if (pButtonText.compare("Delete") == 0)  
 	{
+		// Suppress all pieces in the puzzle and create a new input to begin the puzzle
 		puzzleArray.clear();
+		CommandOutput.clear();
 		shared_ptr<In> inStart = make_shared<In>();
 		inStart->x0 = -0.8;
 		inStart->y0 = 0.5;
@@ -95,14 +174,15 @@ void useButton(string pButtonText)
 	}
 	else if (pButtonText.compare("Execute") == 0)
 	{
-		glutLeaveMainLoop();
+		my_popen(CommandSentence, CommandOutput); 
+		CommandExecuted = true;
 	}
 }
 
 void movePiece(shared_ptr<Piece>& pPiece, float pCursorX, float pCursorY)
 {
-	if (pCursorX > -0.90 && pCursorX < 0.50
-		&& pCursorY > -0.75 && pCursorY < 0.75)
+	if (pCursorX > -0.90 && pCursorX < 0.40
+		&& pCursorY > -0.65 && pCursorY < 0.65)
 	{
 		pPiece->x0 = pCursorX;
 		pPiece->y0 = pCursorY;
@@ -124,6 +204,8 @@ void writingCommand()
 	}
 }
 
+
+
 void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 {
 	// SE RENSEIGNER SUR CETTE MERDE
@@ -140,9 +222,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				// On bloque les entrées
 				p->inProcessus = false;
 				d->outIn = false;
-
-
-				//+ p->texte;
 
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -162,8 +241,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				p->outProcessus = false;
 				d->inOut = false;
 
-				//CA NARRIVERAJAMAAIS
-
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
 				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
@@ -182,8 +259,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				p->errorProcessus = false;
 				d->inError = false;
 
-				//CA N ARRIVERA JAMAIS
-
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
 				pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
@@ -201,10 +276,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 				// On bloque les entrées
 				p->inProcessus = false;
 				d->outTube = false;
-
-				// On ajoute au mot total une pipe
-				//pTotalWord += p->texte;;
-
 
 				// On change la pièce de vector
 				puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -226,8 +297,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			p->outIn = false;
 			d->inProcessus = false;
 
-			//Ca N ARRIVERA JAMAIS
-
 			// On change la pièce de vector
 			puzzleArray.insert(puzzleArray.end(), pPiece);
 			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
@@ -248,7 +317,7 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			d->outProcessus = false;
 
 			string txt = p->text;
-			p->text = " RedirectionVersSortie" + txt;
+			p->text = " 1> " + txt;
 
 			// On change la pièce de vector
 			puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -279,46 +348,7 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
 
 			string txt = p->text;
-			p->text = " RedirectionVersSortieErreur" + txt;
-			/*
-			if (d->outProcessus)
-			{
-				pTotalWord += "RedirectionVersSortieErreur" + p->texte;
-			}
-			else
-			{
-				string vNewCommandLine;
-				for (int vCharacterCommand = 0; vCharacterCommand < (int)size(pTotalWord) - (int)size(d->texte); vCharacterCommand++)
-				{
-					string vSearchedWord = "";
-					for (int i = 0; i < (int)size(d->texte); i++)
-					{
-						vSearchedWord += pTotalWord[i];
-					}
-					if (vSearchedWord.compare(d->texte) == 0)
-					{
-						for (int i = 0; i < vCharacterCommand; i++)
-						{
-							vNewCommandLine[i] = pTotalWord[i];
-						}
-
-						vNewCommandLine += "RedirectionVersSortieErreur" + p->texte;
-
-						for (int i = vCharacterCommand; i < (int)size(pTotalWord); i++)
-						{
-							vNewCommandLine[i + (int)size(d->texte) + 28] = pTotalWord[i]; // 28 = RedirectionVersSortieErreur.size()
-						}
-
-						pTotalWord = vNewCommandLine;
-					}
-				}
-				//ensuite, executer la commande
-			}
-
-			// On change la pièce de vector
-			pPuzzleArray.insert(pPuzzleArray.end(), pPiece);
-			pPieceArray.erase(remove(pPieceArray.begin(), pPieceArray.end(), pPiece), pPieceArray.end());
-			*/
+			p->text = " 2> " + txt;
 
 			// On déplace la pièce
 			p->x0 = d->x0;
@@ -334,8 +364,6 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			// On bloque les entrées
 			p->inTube = false;
 			d->outProcessus = false;
-
-			//string txt = p->texte;
 
 			// On change la pièce de vector
 			puzzleArray.insert(puzzleArray.end(), pPiece);
@@ -365,7 +393,7 @@ void collisionRectRect()
 	}
 }
 
-/*void my_popen(const string& pCommand, vector<string>& pOutput) {
+void my_popen(const string& pCommand, vector<string>& pOutput) {
 	FILE* vFile;
 	const int vSizeBuf = 1234;
 	char vBuff[vSizeBuf];
@@ -374,20 +402,14 @@ void collisionRectRect()
 	{
 		cout << "error, File NULL" << endl;
 	}
-
-	string vCurrent_string = "";
-
-	while (fgets(vBuff, sizeof(vBuff), vFile))
-	{
-		vCurrent_string += vBuff;
-	}
+}
 
 	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
 	//if (pCommand.substr(0, 2) == "cd") {
 	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
 	//}
 	pclose(vFile);
-}//Code from stackoverflow*/
+}//Code from stackoverflow
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -399,9 +421,6 @@ void glutDisplay()// WHat the screen displays
 {
 	// reset buffer's content
 	glClear(GL_COLOR_BUFFER_BIT);
-	// background and environment content
-
-
 
 	//  Zones
 	for (Zone CurrentZone : ZonesArray)
@@ -415,7 +434,7 @@ void glutDisplay()// WHat the screen displays
 	{
 		drawShape(CurrentButton.aCornersList, 0.5, 0.25, 0.5, GL_POLYGON);// Drawing interior
 		drawShape(CurrentButton.aCornersList, 0, 0, 0, GL_LINE_LOOP);// Drawing exterior
-		drawWriting(CurrentButton.aPosX + 0.03, CurrentButton.aPosY + 0.03, 1, 1, 1, CurrentButton.aText);
+		drawWriting(CurrentButton.aPosX + 0.03, CurrentButton.aPosY + 0.03, 1, 1, 1, CurrentButton.aText, GLUT_BITMAP_TIMES_ROMAN_24);
 	}
 
 	// Draw Pieces
@@ -426,15 +445,20 @@ void glutDisplay()// WHat the screen displays
 		drawShape(pieceArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
 	}
 
+	// Draw Puzzle
 	for (int i = 0; i < puzzleArray.size(); i++)
 	{
 		puzzleArray[i]->createPoint();
 		drawTriangles(puzzleArray[i]->pointXY);
 		drawShape(puzzleArray[i]->contourXY, 0, 0, 0, GL_LINE_LOOP);
 	}
-	writingCommand();
-	drawWriting(-0.9, -0.88, 0, 0, 0, CommandSentence);
 
+	// Write the command
+	writingCommand();
+	drawWriting(-0.9, -0.88, 0, 0, 1, CommandSentence, GLUT_BITMAP_TIMES_ROMAN_24);
+
+	drawCommandOutput();
+	
 	// swap current screen and buffer
 	glutSwapBuffers();
 }
@@ -575,8 +599,6 @@ int main(int argc, char** argv)
 	glutMouseFunc(glutMouse);
 	glutMotionFunc(glutMotion);
 	glutDisplayFunc(glutDisplay);
-
-
 
 	glutMainLoop();
 

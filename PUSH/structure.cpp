@@ -77,13 +77,6 @@ struct Button : public Zone
 	}
 };
 
-struct Puzzle
-{
-	// En developpement
-	//
-	//
-};
-
 struct Piece
 {
 
@@ -132,7 +125,12 @@ struct Processus : public Piece
 {
 	bool inProcessus = true, outProcessus = true, errorProcessus = true;
 
-	Processus() { createPoint(); }
+	Processus() 
+	{ 
+		createPoint();
+		text = "ls -l";
+
+	}
 
 	void createPoint() override {
 		x1 = x0 - 0.05;
