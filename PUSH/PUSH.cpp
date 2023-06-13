@@ -14,6 +14,11 @@ vector <shared_ptr<Piece>> pieceArray;
 vector <shared_ptr<Piece>> puzzleArray;
 bool LeftClickState = false;
 string CommandSentence = "";
+vector<string> CommandOutput = vector<string>();
+bool CommandExecuted;
+int main_window;
+GLUI* glui;
+GLUI_EditText* EditText;
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
@@ -393,24 +398,6 @@ void collisionRectRect()
 	}
 }
 
-void my_popen(const string& pCommand, vector<string>& pOutput) {
-	FILE* vFile;
-	const int vSizeBuf = 1234;
-	char vBuff[vSizeBuf];
-	pOutput = vector<string>();
-	if ((vFile = popen(pCommand.c_str(), "r")) == NULL)
-	{
-		cout << "error, File NULL" << endl;
-	}
-}
-
-	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
-	//if (pCommand.substr(0, 2) == "cd") {
-	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
-	//}
-	pclose(vFile);
-}//Code from stackoverflow
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
@@ -539,13 +526,7 @@ void glutIdle()
 
 void glutKeyboard(unsigned char key, int x, int y)// Callbacks of the keyboard
 {
-	if (key == 'f') {
-		djlazdjalkzjd = true;
-		new GLUI_StaticText(pPanel, "Entrez une commande : ");
-		EditText = new GLUI_EditText(pPanel, "");
-		EditText->set_w(410);
-		glui->show();
-	}
+	if (key == 'f') { glutLeaveMainLoop(); }
 }
 
 int main(int argc, char** argv)
