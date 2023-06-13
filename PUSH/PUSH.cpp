@@ -308,6 +308,30 @@ void collisionRectRect()
 	}
 }
 
+void my_popen(const string& pCommand, vector<string>& pOutput) {
+	FILE* vFile;
+	const int vSizeBuf = 1234;
+	char vBuff[vSizeBuf];
+	pOutput = vector<string>();
+	if ((vFile = popen(pCommand.c_str(), "r")) == NULL)
+	{
+		cout << "error, File NULL" << endl;
+	}
+
+	string vCurrent_string = "";
+
+	while (fgets(vBuff, sizeof(vBuff), vFile))
+	{
+		vCurrent_string += vBuff;
+	}
+
+	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
+	//if (pCommand.substr(0, 2) == "cd") {
+	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
+	//}
+	pclose(vFile);
+}//Code from stackoverflow
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //	
@@ -351,7 +375,7 @@ void glutDisplay()// WHat the screen displays
 	}
 	// Write the command
 	writingCommand();
-	drawWriting(-0.9, -0.88, 0, 0, 1, CommandSentence);
+	drawWriting(-0.9, -0.9, 0, 0, 0, CommandSentence);
 
 	// swap current screen and buffer
 	glutSwapBuffers();
