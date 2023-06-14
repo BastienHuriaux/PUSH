@@ -100,7 +100,6 @@ void glutMouse(int button, int state, int x, int y)
 		{
 			if (CurrentButton.buttonPressed(vX, vY)) { useButton(CurrentButton.aText); return; }
 		}
-		cout << puzzleArray[0]->isPointInsideForm(vX, vY) << endl;
 
 		for (int i = 0; i < puzzleArray.size(); i++) {
 			if (puzzleArray[i]->isPointInsideForm(vX, vY) && button == GLUT_LEFT_BUTTON
@@ -153,7 +152,7 @@ void init()
 	Button ButtonOut = Button(-0.26, 0.81, "Out");
 	Button ButtonError = Button(0.06, 0.81, "Error");
 	Button ButtonTube = Button(0.38, 0.81, "Tube");
-	Button ButtonDelete = Button(0.7, 0.81, "Delete");
+	Button ButtonDelete = Button(0.7, 0.81, "Clear");
 
 	Button ButtonExecute = Button(0.23, -0.86, "Execute");
 

@@ -36,7 +36,7 @@ void useButton(string pButtonText)
 	{
 		pieceArray.insert(pieceArray.end(), newTube);
 	}
-	else if (pButtonText.compare("Delete") == 0)
+	else if (pButtonText.compare("Clear") == 0)
 	{
 		// Suppress all pieces in the puzzle 
 		puzzleArray.clear();
