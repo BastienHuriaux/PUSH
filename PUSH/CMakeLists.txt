@@ -3,7 +3,7 @@
 #
 
 # Ajoutez une source à l'exécutable de ce projet.
-add_executable (PUSH "PUSH.cpp" "PUSH.hpp" "structure.cpp")
+add_executable (PUSH "PUSH.cpp" "PUSH.hpp" "src/structure.cpp" "src/glut_functions.cpp" "src/draw.cpp" "src/draw.h" "src/puzzle.cpp"  "src/puzzle.h" "src/command.cpp" "src/command.h" )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET PUSH PROPERTY CXX_STANDARD 20)
