@@ -15,12 +15,15 @@ extern Button ButtonsArray[7];
 extern int main_window;
 extern GLUI* glui;
 extern GLUI_EditText* EditText;
+extern std::string PieceOnCursorText;
 
 void control(int id);
 
 void glutDisplay();
 
 void glutMotion(int x, int y);
+
+void glutPassiveMotion(int x, int y);
 
 void glutMouse(int button, int state, int x, int y);
 

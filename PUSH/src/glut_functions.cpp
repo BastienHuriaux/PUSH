@@ -10,6 +10,7 @@ Button ButtonsArray[7];
 int main_window;
 GLUI* glui;
 GLUI_EditText* EditText;
+string PieceOnCursorText = "";
 
 // Function that gets the string in the glui textbox, then close this subwindow
 void control(int id)
@@ -64,6 +65,9 @@ void glutDisplay()
 	writingCommand();
 	drawWriting(-0.9, -0.83, 0, 0, 1, CommandSentence, GLUT_BITMAP_TIMES_ROMAN_24);
 
+	// Write the text of the highlighted piece
+	drawWriting(-0.9, -0.6, 0, 0, 1, PieceOnCursorText, GLUT_BITMAP_TIMES_ROMAN_24);
+
 	// Write the standard output
 	drawCommandOutput();
 
@@ -89,6 +93,33 @@ void glutMotion(int x, int y)
 	}
 }
 
+void glutPassiveMotion(int x, int y)
+{
+	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
+	float vY = -((2 * (float)y / glutGet(GLUT_SCREEN_HEIGHT)) - 1);
+
+	for (int i = 0; i < pieceArray.size(); i++)
+	{
+		if (pieceArray[i]->isPointInsideForm(vX, vY))
+		{
+			PieceOnCursorText = "Highlighted piece : " + pieceArray[i]->text;
+			glutPostRedisplay();
+			return;
+		}
+	}
+	for (int i = 0; i < puzzleArray.size(); i++)
+	{
+		if (puzzleArray[i]->isPointInsideForm(vX, vY))
+		{
+			PieceOnCursorText = "Highlighted piece : " + puzzleArray[i]->text;
+			glutPostRedisplay();
+			return;
+		}
+	}
+	PieceOnCursorText = "";
+	glutPostRedisplay();
+}
+
 // Callback function for mouse click in the GLUT window
 void glutMouse(int button, int state, int x, int y)
 {
@@ -105,12 +136,13 @@ void glutMouse(int button, int state, int x, int y)
 			if (puzzleArray[i]->isPointInsideForm(vX, vY) && button == GLUT_LEFT_BUTTON
 				&& state == GLUT_DOWN && (typeid(*puzzleArray[i]) != typeid(Tube)))
 			{
-				glui = GLUI_Master.create_glui("GLUI");
+				glui = GLUI_Master.create_glui("GLUI", 0, 400, 50);
 				new GLUI_StaticText(glui, "Entrez une commande : ");
 				EditText = new GLUI_EditText(glui, "");
 				EditText->set_w(410);
 				new GLUI_Button(glui, "Valider", i, control);
 				glui->set_main_gfx_window(main_window);
+				glutPostRedisplay();
 			}
 		}
 	}
