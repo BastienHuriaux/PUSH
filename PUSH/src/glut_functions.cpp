@@ -10,6 +10,7 @@ Button ButtonsArray[7];
 int main_window;
 GLUI* glui;
 GLUI_EditText* EditText;
+string PieceOnCursorDescription = "";
 
 // Function that gets the string in the glui textbox, then close this subwindow
 void control(int id)
@@ -41,6 +42,7 @@ void glutDisplay()
 	{
 		drawShape(CurrentButton.aCornersList, 0.493, 0.102, 0.493, GL_POLYGON);// Drawing interior
 		drawShape(CurrentButton.aCornersList, 0, 0, 0, GL_LINE_LOOP);// Drawing exterior
+		drawShape(CurrentButton.outlineXY, 0, 0.797, 0.797, GL_LINE_LOOP); // drawing form
 		drawWriting(CurrentButton.aPosX + 0.03, CurrentButton.aPosY + 0.03, 1, 1, 1, CurrentButton.aText, GLUT_BITMAP_TIMES_ROMAN_24);
 	}
 
@@ -83,6 +85,20 @@ void glutMotion(int x, int y)
 		{
 			movePiece(pieceArray[i], vX, vY);
 			collisionRectRect();
+			glutPostRedisplay();
+			return;
+		}
+	}
+}
+
+void glutPassiveMotion(int x, int y)
+{
+	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
+	float vY = -((2 * (float)y / glutGet(GLUT_SCREEN_HEIGHT)) - 1);
+	for (int i = 0; i < pieceArray.size(); i++)
+	{
+		if (pieceArray[i]->isPointInsideForm(vX, vY))
+		{
 			glutPostRedisplay();
 			return;
 		}
@@ -166,8 +182,8 @@ void init()
 	ButtonsArray[6] = ButtonExecute;
 
 	// Initialization of the first piece
-	shared_ptr<In> inStart = make_shared<In>();
-	inStart->x0 = -0.8;
+	shared_ptr<Processus> inStart = make_shared<Processus>();
+	inStart->x0 = -0.4;
 	inStart->y0 = 0.5;
 	puzzleArray.insert(puzzleArray.end(), inStart);
 }

@@ -84,8 +84,6 @@ void suppressPiece(int indice)
 	pieceArray.erase(pieceArray.begin() + indice);
 }
 
-
-
 // Called when one piece is in contact with the puzzle 
 // Assembling of the puzzle
 void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)

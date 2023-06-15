@@ -22,6 +22,8 @@ void glutDisplay();
 
 void glutMotion(int x, int y);
 
+void glutPassiveMotion(int x, int y);
+
 void glutMouse(int button, int state, int x, int y);
 
 void glutKeyboard(unsigned char key, int x, int y);

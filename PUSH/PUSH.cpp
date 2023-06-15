@@ -13,6 +13,7 @@ int main(int argc, char** argv)
 	main_window = glutCreateWindow("PUSH");
 	glutMouseFunc(glutMouse);
 	glutMotionFunc(glutMotion);
+	glutPassiveMotionFunc(glutPassiveMotion);
 	glutDisplayFunc(glutDisplay);
 
 	glutMainLoop();

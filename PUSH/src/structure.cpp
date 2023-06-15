@@ -25,6 +25,7 @@ struct Zone
 
 	// List of corners' coordinates
 	vector<vector<float>> aCornersList;
+	vector <vector<float>> outlineXY;
 
 	// Constructors
 	Zone(float pPosX, float pPosY, float pLength, float pHeight)
