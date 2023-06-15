@@ -25,7 +25,6 @@ struct Zone
 
 	// List of corners' coordinates
 	vector<vector<float>> aCornersList;
-	vector <vector<float>> outlineXY;
 
 	// Constructors
 	Zone(float pPosX, float pPosY, float pLength, float pHeight)
@@ -99,6 +98,8 @@ struct Piece
 	vector <vector<float>> outlineXY;
 
 	string text = "";
+
+	bool aIsInGameArea = false;
 
 	// Constructor
 	Piece() {}
@@ -185,7 +186,6 @@ struct In : public Piece
 		outlineXY = { { x1, x2, x2, x5, x5, x2, x2, x1 },
 					{ y2, y2, y4, y4, y3, y3, y1, y1 } };
 	}
-
 };
 
 

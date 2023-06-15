@@ -8,43 +8,16 @@ vector <shared_ptr<Piece>> puzzleArray;
 // Create a piece, clear the puzzle, execute the command
 void useButton(string pButtonText)
 {
-	// Different pieces are created and the right one will be inserted in the piece array 
-	shared_ptr<Processus> newProcessus = make_shared<Processus>();
-	shared_ptr<In> newIn = make_shared<In>();
-	shared_ptr<Out> newOut = make_shared<Out>();
-	shared_ptr<Error> newError = make_shared<Error>();
-	shared_ptr<Tube> newTube = make_shared<Tube>();
-
-	// Try which button is pressed and add a new piece accordingly
-	if (pButtonText.compare("Processus") == 0)
-	{
-		pieceArray.insert(pieceArray.end(), newProcessus);
-	}
-	else if (pButtonText.compare("In") == 0)
-	{
-		pieceArray.insert(pieceArray.end(), newIn);
-	}
-	else if (pButtonText.compare("Out") == 0)
-	{
-		pieceArray.insert(pieceArray.end(), newOut);
-	}
-	else if (pButtonText.compare("Error") == 0)
-	{
-		pieceArray.insert(pieceArray.end(), newError);
-	}
-	else if (pButtonText.compare("Tube") == 0)
-	{
-		pieceArray.insert(pieceArray.end(), newTube);
-	}
-	else if (pButtonText.compare("Clear") == 0)
+	
+	if (pButtonText.compare("Clear") == 0)
 	{
 		// Suppress all pieces in the puzzle 
 		puzzleArray.clear();
 		CommandOutput.clear();
 
 		// Create a new input to begin the puzzle
-		shared_ptr<In> inStart = make_shared<In>();
-		inStart->x0 = -0.8;
+		shared_ptr<Processus> inStart = make_shared<Processus>();
+		inStart->x0 = -0.4;
 		inStart->y0 = 0.5;
 		puzzleArray.insert(puzzleArray.end(), inStart);
 	}
@@ -63,19 +36,84 @@ void useButton(string pButtonText)
 	}
 }
 
+void createPieceSimiliButton(shared_ptr<Piece>& pPiece)
+{
+	// Different pieces are created and the right one will be inserted in the piece array 
+	shared_ptr<Processus> newProcessus = make_shared<Processus>();
+	shared_ptr<In> newIn = make_shared<In>();
+	shared_ptr<Out> newOut = make_shared<Out>();
+	shared_ptr<Error> newError = make_shared<Error>();
+	shared_ptr<Tube> newTube = make_shared<Tube>();
+
+	// Try which button is pressed and add a new piece accordingly
+	if (typeid(*pPiece) == typeid(Processus))
+	{
+		newProcessus->x0 = -0.8;
+		newProcessus->y0 = 0.86;
+		pieceArray.insert(pieceArray.end(), newProcessus);
+	}
+	else if (typeid(*pPiece) == typeid(In))
+	{
+		newIn->x0 = -0.5;
+		newIn->y0 = 0.86;
+		pieceArray.insert(pieceArray.end(), newIn);
+	}
+	else if (typeid(*pPiece) == typeid(Out))
+	{
+		newOut->x0 = -0.2;
+		newOut->y0 = 0.86;
+		pieceArray.insert(pieceArray.end(), newOut);
+	}
+	else if (typeid(*pPiece) == typeid(Error))
+	{
+		newError->x0 = 0.1;
+		newError->y0 = 0.86;
+		pieceArray.insert(pieceArray.end(), newError);
+	}
+	else if (typeid(*pPiece) == typeid(Tube))
+	{
+		newTube->x0 = 0.4;
+		newTube->y0 = 0.86;
+		pieceArray.insert(pieceArray.end(), newTube);
+	}
+
+}
+
 // Called when a left click is done inside a piece 
 // Deplacement of a piece in concordance with the cursor position
 void movePiece(shared_ptr<Piece>& pPiece, float pCursorX, float pCursorY)
 {
-	// The piece can be moved in a limited space
-	if (pCursorX > -0.90 && pCursorX < 0.40
-		&& pCursorY > -0.65 && pCursorY < 0.65)
+	if (pPiece->aIsInGameArea)
 	{
-		pPiece->x0 = pCursorX;
-		pPiece->y0 = pCursorY;
-		glutPostRedisplay();
+		// The piece can be moved in a limited space
+		if (pCursorX > -0.90 && pCursorX < 0.40
+			&& pCursorY > -0.65 && pCursorY < 0.65)
+		{
+			pPiece->x0 = pCursorX; 
+			pPiece->y0 = pCursorY; 
+			glutPostRedisplay(); 
+		}
 	}
+	// The piece can be moved in a limited space
+	else
+	{
+		if (pCursorX > -0.90 && pCursorX < 0.40
+			&& pCursorY > -0.65 && pCursorY < 0.90)
+		{
+			pPiece->x0 = pCursorX;
+			pPiece->y0 = pCursorY;
+
+			if (pCursorY <= 0.65)
+			{
+				pPiece->aIsInGameArea = true;
+				createPieceSimiliButton(pPiece);
+			}
+			glutPostRedisplay();
+		}
+	}	
 }
+
+
 
 // Called when a right click is done inside a piece
 // Suppress a piece
