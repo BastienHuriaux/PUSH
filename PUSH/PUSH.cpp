@@ -14,7 +14,9 @@ int main(int argc, char** argv)
 	glutMouseFunc(glutMouse);
 	glutMotionFunc(glutMotion);
 	glutPassiveMotionFunc(glutPassiveMotion);
+	glutKeyboardFunc(glutKeyboard);
 	glutDisplayFunc(glutDisplay);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
 	glutMainLoop();
 

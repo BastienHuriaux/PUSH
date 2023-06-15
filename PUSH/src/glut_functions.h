@@ -15,6 +15,7 @@ extern Button ButtonsArray[2];
 extern int main_window;
 extern GLUI* glui;
 extern GLUI_EditText* EditText;
+extern std::string PieceOnCursorText;
 
 void control(int id);
 
