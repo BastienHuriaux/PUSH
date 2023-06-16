@@ -121,20 +121,6 @@ void glutPassiveMotion(int x, int y)
 	glutPostRedisplay();
 }
 
-void glutPassiveMotion(int x, int y)
-{
-	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
-	float vY = -((2 * (float)y / glutGet(GLUT_SCREEN_HEIGHT)) - 1);
-	for (int i = 0; i < pieceArray.size(); i++)
-	{
-		if (pieceArray[i]->isPointInsideForm(vX, vY))
-		{
-			glutPostRedisplay();
-			return;
-		}
-	}
-}
-
 // Callback function for mouse click in the GLUT window
 void glutMouse(int button, int state, int x, int y)
 {
