@@ -3,32 +3,29 @@
 using namespace std;
 namespace fs = std::filesystem;
 string CommandSentence = "";
-vector<string> CommandOutput = vector<string>();
+string CommandHidden = "";
+string CommandOutput = "";
+string CommandError = "";
 bool CommandExecuted = false;
 
 // Called when the button "Execute" is pushed
 // Execute the command line and get the standard output
-void my_popen(const string& pCommand, vector<string>& pOutput)
+void my_popen(const string& pCommand, string& pOutput)
 {
 	FILE* vFile;
 	const int vSizeBuf = 1234;
 	char vBuff[vSizeBuf];
-	pOutput = vector<string>();
 	if ((vFile = popen(pCommand.c_str(), "r")) == NULL)
 	{
 		cout << "error, File NULL" << endl;
 	}
 
-	string vCurrent_string = "";
+	pOutput = "";
 
 	while (fgets(vBuff, sizeof(vBuff), vFile))
 	{
-		vCurrent_string += vBuff;
+		pOutput += vBuff;
 	}
-	pOutput.push_back(vCurrent_string.substr(0, vCurrent_string.size() - 1));
-	//if (pCommand.substr(0, 2) == "cd") {
-	//	cd(pCommand.substr(3, pCommand.size() - 3), pPath);
-	//}
 	pclose(vFile);
 }//Code from stackoverflow
 
@@ -38,7 +35,7 @@ void writingCommand()
 {
 	// Reinitialization of the command line
 	CommandSentence = "";
-
+	CommandHidden = "";
 	// Write every string of every piece in the puzzle
 	for (int i = 0; i < puzzleArray.size(); i++)
 	{
@@ -46,18 +43,28 @@ void writingCommand()
 		if (typeid(*puzzleArray[i]) == typeid(Out))
 		{
 			CommandSentence += " 1> " + puzzleArray[i]->text + " ";
+			CommandHidden += " 1> " + puzzleArray[i]->text + " ";
 		}
 		else if (typeid(*puzzleArray[i]) == typeid(Error))
 		{
 			CommandSentence += " 2> " + puzzleArray[i]->text + " ";
+			CommandHidden += " 2> " + puzzleArray[i]->text + " ";
 		}
 		else if (typeid(*puzzleArray[i]) == typeid(Tube))
 		{
 			CommandSentence += " | ";
+			CommandHidden += " | ";
 		}
 		else
 		{
 			CommandSentence += puzzleArray[i]->text + " ";
+			CommandHidden += puzzleArray[i]->text + " ";
+			if (typeid(*puzzleArray[i]) == typeid(Processus)) {
+				Processus* p = dynamic_cast<Processus*>(puzzleArray[i].get());
+				if (p->errorProcessus) {
+					CommandHidden += " 2>> /tmp/error";
+				}
+			}
 		}
 	}
 }

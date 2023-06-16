@@ -41,7 +41,6 @@ void useButton(string pButtonText)
 		// Suppress all pieces in the puzzle 
 		puzzleArray.clear();
 		CommandOutput.clear();
-
 		// Create a new input to begin the puzzle
 		shared_ptr<In> inStart = make_shared<In>();
 		inStart->x0 = -0.8;
@@ -51,15 +50,19 @@ void useButton(string pButtonText)
 	else if (pButtonText.compare("Execute") == 0)
 	{
 		// Execute the command line
-		my_popen(CommandSentence, CommandOutput);
+		my_popen(CommandHidden, CommandOutput);
 		CommandExecuted = true;
+		my_popen("cat /tmp/error", CommandError);
 
 		// Reinitialization of the command sentence and clear of all pieces in the puzzle
 		for (int i = 0; i < puzzleArray.size(); i++)
 		{
-			CommandSentence = "";
 			puzzleArray[i]->text = "";
 		}
+		CommandSentence = "";
+		CommandHidden = "";
+		string ErrorFile;
+		my_popen("rm /tmp/error", ErrorFile);
 	}
 }
 

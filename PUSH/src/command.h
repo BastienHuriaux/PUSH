@@ -7,12 +7,13 @@
 
 #include "puzzle.h"
 
-extern string CommandSentence;
-extern std::vector<std::string> CommandOutput;
+extern std::string CommandSentence;
+extern std::string CommandHidden;
+extern std::string CommandOutput;
+extern std::string CommandError;
 extern bool CommandExecuted;
 
-
-void my_popen(const string& pCommand, vector<string>& pOutput);
+void my_popen(const string& pCommand, std::string& pOutput);
 
 void writingCommand();
 

@@ -69,7 +69,8 @@ void glutDisplay()
 	drawWriting(-0.9, -0.6, 0, 0, 1, PieceOnCursorText, GLUT_BITMAP_TIMES_ROMAN_24);
 
 	// Write the standard output
-	drawCommandOutput();
+	drawCommandOutput(0.65,CommandOutput);
+	drawCommandOutput(-0.43,CommandError);
 
 	// Swap current screen and buffer
 	glutSwapBuffers();

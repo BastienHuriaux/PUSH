@@ -17,6 +17,6 @@ void drawTriangles(std::vector<std::vector<float>> pCoords, float r, float g, fl
 
 void drawWriting(float x, float y, float r, float g, float b, std::string string, void* pTypeOfPolice);
 
-void drawCommandOutput();
+void drawCommandOutput(float pY, std::string& pCommand);
 
 #endif
