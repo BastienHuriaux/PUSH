@@ -11,7 +11,7 @@
 #include "command.h"
 
 extern Zone ZonesArray[5];
-extern Button ButtonsArray[7];
+extern Button ButtonsArray[2];
 extern int main_window;
 extern GLUI* glui;
 extern GLUI_EditText* EditText;

@@ -6,7 +6,7 @@
 //      Main loop's fonctions
 
 Zone ZonesArray[5];
-Button ButtonsArray[7];
+Button ButtonsArray[2];
 int main_window;
 GLUI* glui;
 GLUI_EditText* EditText;
@@ -121,6 +121,20 @@ void glutPassiveMotion(int x, int y)
 	glutPostRedisplay();
 }
 
+void glutPassiveMotion(int x, int y)
+{
+	float vX = (2 * (float)x / glutGet(GLUT_SCREEN_WIDTH)) - 1;
+	float vY = -((2 * (float)y / glutGet(GLUT_SCREEN_HEIGHT)) - 1);
+	for (int i = 0; i < pieceArray.size(); i++)
+	{
+		if (pieceArray[i]->isPointInsideForm(vX, vY))
+		{
+			glutPostRedisplay();
+			return;
+		}
+	}
+}
+
 // Callback function for mouse click in the GLUT window
 void glutMouse(int button, int state, int x, int y)
 {
@@ -180,26 +194,42 @@ void init()
 	ZonesArray[4] = ZoneErrorDisplay;
 
 	// Environment's buttons
-	Button ButtonProcessus = Button(-0.90, 0.81, "Processus");
-	Button ButtonIn = Button(-0.58, 0.81, "In");
-	Button ButtonOut = Button(-0.26, 0.81, "Out");
-	Button ButtonError = Button(0.06, 0.81, "Error");
-	Button ButtonTube = Button(0.38, 0.81, "Tube");
-	Button ButtonDelete = Button(0.7, 0.81, "Clear");
 
+	Button ButtonDelete = Button(0.7, 0.81, "Clear");
 	Button ButtonExecute = Button(0.23, -0.86, "Execute");
 
-	ButtonsArray[0] = ButtonProcessus;
-	ButtonsArray[1] = ButtonIn;
-	ButtonsArray[2] = ButtonOut;
-	ButtonsArray[3] = ButtonError;
-	ButtonsArray[4] = ButtonTube;
-	ButtonsArray[5] = ButtonDelete;
-	ButtonsArray[6] = ButtonExecute;
+	ButtonsArray[0] = ButtonDelete;
+	ButtonsArray[1] = ButtonExecute;
 
-	// Initialization of the first piece
-	shared_ptr<In> inStart = make_shared<In>();
-	inStart->x0 = -0.8;
-	inStart->y0 = 0.5;
-	puzzleArray.insert(puzzleArray.end(), inStart);
+	// Initialization of the first pieces
+	shared_ptr<Processus> processusStart = make_shared<Processus>();
+	processusStart->x0 = -0.4;
+	processusStart->y0 = 0.5;
+	puzzleArray.insert(puzzleArray.end(), processusStart);
+
+	shared_ptr<Processus> processusSimiliButton = make_shared<Processus>();
+	processusSimiliButton->x0 = -0.8;
+	processusSimiliButton->y0 = 0.86;
+	pieceArray.insert(pieceArray.end(), processusSimiliButton);
+
+	shared_ptr<In> inSimiliButton = make_shared<In>();
+	inSimiliButton->x0 = -0.5;
+	inSimiliButton->y0 = 0.86;
+	pieceArray.insert(pieceArray.end(), inSimiliButton);
+
+	shared_ptr<Out> outSimiliButton = make_shared<Out>();
+	outSimiliButton->x0 = -0.2;
+	outSimiliButton->y0 = 0.86;
+	pieceArray.insert(pieceArray.end(), outSimiliButton);
+
+	shared_ptr<Error> errorSimiliButton = make_shared<Error>();
+	errorSimiliButton->x0 = 0.1;
+	errorSimiliButton->y0 = 0.86;
+	pieceArray.insert(pieceArray.end(), errorSimiliButton);
+
+	shared_ptr<Tube> tubeSimiliButton = make_shared<Tube>();
+	tubeSimiliButton->x0 = 0.4;
+	tubeSimiliButton->y0 = 0.86;
+	pieceArray.insert(pieceArray.end(), tubeSimiliButton);
+
 }
