@@ -63,7 +63,7 @@ void glutDisplay()
 
 	// Write the command
 	writingCommand();
-	drawWriting(-0.9, -0.83, 0, 0, 1, CommandSentence, GLUT_BITMAP_TIMES_ROMAN_24);
+	drawWriting(-0.92, -0.82, 0, 0, 1, CommandSentence, GLUT_BITMAP_HELVETICA_18);
 
 	// Write the text of the highlighted piece
 	drawWriting(-0.9, -0.6, 0, 0, 1, PieceOnCursorText, GLUT_BITMAP_TIMES_ROMAN_24);

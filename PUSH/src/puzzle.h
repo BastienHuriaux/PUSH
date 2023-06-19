@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <filesystem>
+#include <unistd.h>
 
 #include <GL/freeglut.h>
 

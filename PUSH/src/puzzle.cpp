@@ -36,6 +36,7 @@ void useButton(string pButtonText)
 		CommandHidden = "";
 		string ErrorFile;
 		my_popen("rm /tmp/error", ErrorFile);
+		chdir(PathCD.c_str());
 	}
 }
 
@@ -115,8 +116,6 @@ void movePiece(shared_ptr<Piece>& pPiece, float pCursorX, float pCursorY)
 		}
 	}	
 }
-
-
 
 // Called when a right click is done inside a piece
 // Suppress a piece
@@ -227,7 +226,13 @@ void avengersPuzzle(shared_ptr<Piece>& pPiece, shared_ptr<Piece>& pPuzzle)
 			d->inProcessus = false;
 
 			// Change which vector the piece is in
-			puzzleArray.insert(puzzleArray.end(), pPiece);
+			vector<shared_ptr<Piece>>::iterator vPosition;
+			vPosition = find(puzzleArray.begin(), puzzleArray.end(), pPuzzle);
+
+			// Add the Error in the puzzle array after the right Processus
+			puzzleArray.insert(vPosition + 1, pPiece);
+
+			// Delete the Error piece from the piece array
 			pieceArray.erase(remove(pieceArray.begin(), pieceArray.end(), pPiece), pieceArray.end());
 
 			// Put the piece next to the one it is attached to
